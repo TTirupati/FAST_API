@@ -1,0 +1,1433 @@
+To install FastAPI:
+    pip install fastapi
+
+To install uvicorm server like asgi server in django which is default:
+    pip install uvicorm
+
+Example:
+
+from fastapi import FastAPI 
+app = FastAPI()
+
+@app.get("/hello")
+def read_root():
+    return {"Hello": "World"}
+
+Example:
+#to pass param in the get method and read the values back
+@app.get("/employee/{emp_id}")
+def read_employee_id(emp_id):
+    return {"employee id  :":emp_id}
+
+#to specify the type of param we an define as fallow
+@app.get("/employee/{emp_id}")
+def read_employee_id(emp_id: int):
+    return {"employee id  :":emp_id}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Union[str, None] = None):
+    return {"item_id": item_id, "q": q}
+
+
+
+Swagger UI: for the other or UI devloper
+http://127.0.0.1:8000/docs.
+
+https://www.youtube.com/watch?v=d_ugoWsvGLI
+
+https://www.youtube.com/watch?v=XnYYwcOfcn8&list=PLqAmigZvYxIL9dnYeZEhMoHcoP4zop8-p
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Channel: JVP Design:
+-------------------
+1.Introduction
+
+fast api is built on starlette,skeleton for the fast api and it used pydantic for the type 
+checking and database vadidation etc.
+
+1. we can create the first virtual enviroment:
+2. we can create the requirement.txt file
+        requirement file:
+                uvicorm
+                fastapi
+3.install in the same enviroment: pip install -r requirement.txt 
+
+First we need to create the main.py file, actually this is the base of the Applicaion.
+
+main.py:
+
+from fastapi import FastAPI
+
+app=FastAPI()
+
+@app.get("/")
+async def root():
+    return {"message":"hello world"}
+
+
+Like in Django how we run the server with manage.py file same we need to run here.
+uvicorm main:app
+uvicorm main:app --reload
+uvicorm main:app --port=5000
+uvicorn main:app --host 192.168.0.132 --port 8000
+
+Example:
+main.py:
+-------
+
+from fastapi import FastAPI
+app=FastAPI()
+
+@app.get("/",description="this is our first route",deprecated=True)
+async def root():
+    return {"message":"hello world"}
+
+@app.post("/")
+async def post():
+    return {"message ": "hello from the post route"}
+
+@app.put("/")
+async def put():
+    return {"message ": "hello from the put route "}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+PATH PARAMETERS:
+---------------
+
+Example: main.py:
+
+from fastapi import FastAPI
+
+app=FastAPI()
+
+@app.get("/items/{item_id}")
+async def root(item_id:int):
+    return {"Item_id":item_id}
+
+
+Example2:
+from enum import Enum
+from fastapi import FastAPI
+
+
+app=FastAPI()
+
+class FoodEnum(str,Enum):
+    fruits='Fruits'
+    vegetables='vegetables'
+    dairy='dairy'
+
+@app.get("/foods/{food_name}")
+async def get(food_name:FoodEnum):
+    if food_name==FoodEnum.vegetables:
+        return {
+                "food name ": food_name,
+                "message "  :"i am healthy person"
+        }
+
+    if food_name.value=="Fruits":
+        return {
+                "food name ": food_name,
+                "message "  :"you are still healthy but likes sweet"
+        }
+
+    return {"food name": food_name,"message ": "I like chocholate ,milk"}
+
+enum in Python
+=============
+Enumerations or Enums is a set of symbolic names bound to unique values.
+It can be iterated over to return its canonical members in definition order. 
+It provides a way to create more readable and self-documenting code by using meaningful names
+instead of arbitrary values.
+
+Properties of Enum
+------------------
+Enums can be displayed as string or repr.
+Enums can be checked for their types using type().
+The “name” keyword is used to display the name of the enum member.
+
+Ex:
+from enum import Enum
+
+class Season(Enum):
+	SPRING = 1
+	SUMMER = 2
+	AUTUMN = 3
+	WINTER = 4
+print(Season.SPRING)
+print(Season.SPRING.name)
+print(Season.SPRING.value)
+print(type(Season.SPRING))
+print(repr(Season.SPRING))
+print(list(Season))
+
+Ex:
+from enum import Enum
+class Season(Enum):
+	SPRING = 1
+	SUMMER = 2
+	AUTUMN = 3
+	WINTER = 4
+print("The enum member associated with value 2 is : ", Season(2).name)
+print("The enum member associated with name AUTUMN is : ", Season['AUTUMN'].value)
+
+
+
+Ex:Enumerations are iterable. They can be iterated using loops
+from enum import Enum
+
+class Season(Enum):
+	SPRING = 1
+	SUMMER = 2
+	AUTUMN = 3
+	WINTER = 4
+
+for season in (Season):
+	print(season.value,"-",season)
+
+#Enumerations Support Hashing
+import enum
+class Animal(enum.Enum):
+	dog = 1
+	cat = 2
+	lion = 3
+	
+di = {}
+di[Animal.dog] = 'bark'
+di[Animal.lion] = 'roar'
+
+if di == {Animal.dog: 'bark', Animal.lion: 'roar'}:
+	print("Enum is hashed")
+	print(di)
+else:
+	print("Enum is not hashed")
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:3: QUERY PARAMTER:
+=========================
+    SO,instead of passing paramters in path where in the below example as we are defining
+    as 
+        @app.get("/foods/{food_name}")
+
+    instead of the above 
+    we can define as 
+
+#we can have optional paramter with Query Paramerter but we can make it as required paramter.
+
+from typing import Optional
+from fastapi import FastAPI
+app=FastAPI()
+
+
+#asssume this is from databases
+fake_items_db=[{"item_name":"Foo"},{"item_name":"Bar"},{"item_name":"Baz"}]
+
+@app.get("/items")
+async def list_items(skip: int=0, limit: int=10):
+    #in this we are giving 0 as default value and limit should be 10 
+    return fake_items_db[skip : skip + limit]
+
+#now if we want the above parement in function as optional then we can go as 
+
+@app.get("/items/{item_id}")
+#async def get_item(item_id:str,q: Optional[str]=None):
+async def get_item(item_id:str,q: str | None=None):
+    if q:
+        return {"item_id":item_id,"q":q}
+    return {"item_id":item_id}
+
+
+"""
+http://127.0.0.1:8000/items?skip=0
+        this will not skip any value
+        [{"item_name":"Foo"},{"item_name":"Bar"},{"item_name":"Baz"}]
+
+http://127.0.0.1:8000/items?skip=1
+        this skip the first element.
+        [{"item_name":"Bar"},{"item_name":"Baz"}] 
+
+http://127.0.0.1:8000/items?skip=2
+        [{"item_name":"Baz"}]
+
+http://127.0.0.1:8000/items?skip=3
+        []
+
+http://127.0.0.1:8000/items?limit=0
+        []
+
+http://127.0.0.1:8000/items?limit=1
+        [{"item_name":"Foo"}]     
+
+
+"""
+
+example:
+from typing import Optional
+from fastapi import FastAPI
+ 
+
+
+app=FastAPI()
+
+
+#asssume this is from databases
+fake_items_db=[{"item_name":"Foo"},{"item_name":"Bar"},{"item_name":"Baz"}]
+
+@app.get("/items")
+async def list_items(skip: int=0, limit: int=10):
+    #in this we are giving 0 as default value and limit should be 10 
+    return fake_items_db[skip : skip + limit]
+
+#now if we want the above parement in function as optional then we can go as 
+
+@app.get("/items/{item_id}")
+async def get_item(item_id:str,q: str | None=None,short:bool=False):
+    item={"item it ":item_id}
+    if q:
+        item.update({"q":q})
+    if not short:
+        item.update(
+            {
+                "description":"this is my descrition of the myworld"
+            }
+        )
+    return item
+
+"""
+ http://127.0.0.1:8000/items/hello?q=world&short=0
+
+ o/p:
+ {"item it ":"hello","q":"world","description":"this is my descrition of the myworld"}   
+
+
+
+#Single Path Param and single Query Param.
+from typing import Optional
+from fastapi import FastAPI
+
+@app.get("/items/{item_id}")
+async def get_item(item_id:str,q: str | None=None,short:bool=False):
+    item={"item it ":item_id}
+    if q:
+        item.update({"q":q})
+    if not short:
+        item.update(
+            {
+                "description":"this is my descrition of the myworld"
+            }
+        )
+    return item
+
+"""
+ http://127.0.0.1:8000/items/hello?q=world&short=0
+
+ o/p:
+ {"item it ":"hello","q":"world","description":"this is my descrition of the myworld"}   
+
+
+"""
+
+
+"""
+Mulitple Path and Query Param
+"""
+
+from typing import Optional
+from fastapi import FastAPI
+
+app=FastAPI()
+
+@app.get("/user/{user_id}/items/{item_id}")
+async def get_user_item(user_id:int , item_id:str , q: str|None=None, short:bool=False):
+    item={'item_id':item_id,'owner id ':user_id}
+    if q:
+        item.update({"q":q})
+    if not short:
+        item.update(
+            {"description ": "this is my world or programming"}
+        )
+    return item
+
+
+"""
+http://127.0.0.1:8000/user/1000/items/123?q=hello%20wolrd&short=0
+
+{"item_id":"123","owner id ":1000,"q":"hello wolrd","description ":"this is my world or programming"}
+
+"""
+
+"""
+All path parameter are the required Params only 
+but if we make the query paramter as required parameter the we can return the paramter
+in the response api.
+
+"""
+
+from typing import Optional
+from fastapi import FastAPI
+
+app=FastAPI()
+
+@app.get("/user/{user_id}/items/{item_id}")
+async def get_user_item(user_id:int , item_id:str , sample_required_query:str, q: str|None=None, short:bool=False):
+    item={'item_id':item_id,'owner id ':user_id,"sample_required_query":sample_required_query}
+    if q:
+        item.update({"q":q})
+    if not short:
+        item.update(
+            {"description ": "this is my world or programming"}
+        )
+    return item
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:4: REQUEST BODY:
+=======================
+    request body is used when we send data in the post and patch or put
+
+"""
+All path parameter are the required Params only 
+but if we make the query paramter as required parameter the we can return the paramter
+in the response api.
+
+"""
+
+from typing import Optional
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app=FastAPI()
+
+
+class Item(BaseModel):
+    name:str
+    decription:Optional[str]=None #setting this attribute as Optional it supports to 3.6 to 3.10
+    price:float
+    tax:float | None=None #setting this attribute as Optional it supports above 3.10
+
+
+@app.post("/items")
+async def create_item(item:Item):
+    item_dic=item.dict() #this method comes through pydantic, anything as a basemodel, we can call the dict() method on it.
+
+    if item.tax:
+        price_with_tax=item.price+item.tax
+        item_dic.update({"price with tax ": price_with_tax})
+    return item_dic
+
+#path paramter & Query Paramater
+@app.put("/items/{item_id}")
+async def create_item_put(item_id: int, item: Item,q:str | None=None):
+    result={"item id  ": item_id,**item.dict()} #**item.dict() this will return the dic object of the base class by updating the item_id
+    if q:
+        result.update({"q ": q}
+    )
+    return result
+
+
+"""
+status code 422:
+    in fastapi anything does not work by default it will show this status code.
+"""
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:5: Query Parameters and String Validation:
+==================================================
+
+#validating the query paramater
+#now i want to set the limit for the Query paramarter let say max length of the string=6
+
+from fastapi import FastAPI,Query
+from pydantic import BaseModel
+@app.get("/items")
+async def read_items(q: str | None=Query(None,max_length=10,min_length=3,regex="^fixedquery$")):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+Query(None,max_length=10):
+        it allows none or max length of the characters query paramter
+
+def read_items(q: str | None=Query(None,max_length=10,min_length=3,regex="^fixedquery$")):
+def read_items(q: str | None=Query("fixedQuery",max_length=10,min_length=3,regex="^fixedquery$")):
+
+--the first paramter in the Query class is default value
+
+
+Now we want include required query string.
+----------------------------------------
+Example:
+@app.get("/items")
+async def read_items(q: str):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+
+or 
+@app.get("/items")
+async def read_items(q: str=Query(...,min_length=3,max_length=10)):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+
+three dots(...) are called as elipses. which make the query paramter is required params.
+
+Allow the muliple values from the query paramter
+-------------------------------------------------
+like
+    http://127.0.0.1:8000/items?q=hello&q=world&q=tom
+
+@app.get("/items")
+async def read_items(q: list[str] | None=Query(None)):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+
+o/p:
+{"item":[{"item id ":"foo"},{"item id ":"bar"}],"q":["hello","world","tom"]}
+
+default values as a list in Query class:
+---------------------------------------
+@app.get("/items")
+async def read_items(q: list[str] | None=Query(["Tom","parker"])):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+
+
+Adding the metdata for the Query params and alias to the query params
+---------------------------------------------------------------------
+@app.get("/items")
+async def read_items(q: str | None=Query(
+    None,min_length=2,
+    max_length=10,
+    title="this is sample title",
+    description="this is sample description",
+    deprecated=True,
+    alias="item-query"
+    )
+):
+    result={"item":[{"item id ":"foo"},{"item id ":"bar"}]}
+    if q:
+        result.update({"q":q})
+    return result
+
+http://127.0.0.1:8000/items?item-query=foobar
+
+lets see hidding some thing:
+----------------------------
+@app.get("/items/hidden")
+async def hidden_query_route(hidden_query:str | None=Query(None,include_in_schema=False)):
+    if hidden_query:
+        return {"hidden query ": hidden_query}
+    return {"hidden query ": "hidden Query not Found"}
+
+http://127.0.0.1:8000/items_hidden?hidden_query=hello%20world
+
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:6: Path Parameters and Numeric Validation
+==================================================
+async def read_item(
+    item_id: int=Path(...,title="this is path validation params"), 
+    q: str | None=Query(None,alias="item-query")):
+    result={"Item id ":item_id}
+    if q:
+        result.update({"q":q})
+    return result
+
+
+let say we want to make in the same example query param as required params
+so we we write the example as ,
+
+@app.get("/items_validation/{item_id}")
+async def read_item(
+    item_id: int=Path(...,title="this is path validation params"), 
+    q: str
+    ):
+
+    result={"Item id ":item_id}
+    if q:
+        result.update({"q":q})
+    return result
+
+the above example throw the error as 
+     q: str
+    ^^^^^^
+SyntaxError: non-default argument follows default argument
+
+to resolve this issue we need to change the position of the params
+
+-->so suppose we doesnot wants to solve the above issue by keeping no default args in the first
+place instead of the we can solve like this also.
+
+if we put the star(*), first the after this args(*), it assumes as keyword arguments.
+
+@app.get("/items_validation/{item_id}")
+async def read_item(
+    *,
+    item_id: int=Path(...,title="this is path validation params"), 
+    q: str
+    ):
+
+    result={"Item id ":item_id}
+    if q:
+        result.update({"q":q})
+    return result
+
+#for the validation for fload DT
+@app.get("/items_validation/{item_id}")
+async def read_item(
+    *,
+    item_id: int=Path(...,title="this is path validation params",ge=10,le=20), 
+    q: str='hello',
+    size:float=Query(...,qt=0,lt=7.75)
+    ):
+
+    result={"Item id ":item_id}
+    if q:
+        result.update({"q":q})
+    return result
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:6: 7: Body - Multiple Parameters
+=========================================
+class Item(BaseModel):
+    name:str
+    decription:Optional[str]=None  #optional
+    price:float
+    tax:float | None=None           #optional
+
+class User(BaseModel):
+    username:str
+    fullname:str|None=None
+
+
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id:int=Path(...,title="this is path paramter",ge=0,le=150),
+    q:str|None=None,
+    item:Item |None=None,
+    user:User,
+    importance:int #this is query parameter
+    ):
+
+    results={"item_id":item_id}
+    if q:
+        results.update({"q":q})
+    if item:
+        results.update({"item":item})
+    if user:
+        results.update({"user": user})
+    if importance:
+        results.update({"importance":importance})
+
+    return results
+
+here in this example "importance" is a query parameter which is required params.
+
+tp avoid this , now we can create one class as 
+o/p:
+
+{
+  "item_id": 100,
+  "item": {
+    "name": "string",
+    "decription": "string",
+    "price": 0,
+    "tax": 0
+  },
+  "user": {
+    "username": "string",
+    "fullname": "string"
+  },
+  "importance": {
+    "importance": 0
+  }
+}
+
+now this is too much for just passing one params as int value as importance class 
+instead of that we can use Body() Object as we have Path() and Query()
+
+
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel
+
+
+app=FastAPI()
+class Item(BaseModel):
+    name:str
+    decription:Optional[str]=None  #optional
+    price:float
+    tax:float | None=None           #optional
+
+class User(BaseModel):
+    username:str
+    fullname:str|None=None
+ 
+
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id:int=Path(...,title="this is path paramter",ge=0,le=150),
+    q:str|None=None,
+    item:Item |None=None,
+    user:User,
+    importance:int=Body(...) 
+    ):
+
+    results={"item_id":item_id}
+    if q:
+        results.update({"q":q})
+    if item:
+        results.update({"item":item})
+    if user:
+        results.update({"user": user})
+    if importance:
+        results.update({"importance":importance})
+
+    return results
+response:
+{
+  "item": {
+    "name": "string",
+    "decription": "string",
+    "price": 0,
+    "tax": 0
+  },
+  "user": {
+    "username": "string",
+    "fullname": "string"
+  },
+  "importance": 0
+}
+
+the below is the default request body:
+-------------------------------------
+
+{
+  "name": "string",
+  "decription": "string",
+  "price": 0,
+  "tax": 0
+}
+
+Now if we want every request body should be associated to some key and dictionary then we can use 
+    Body(...,embed=True)
+
+{
+  "item": {
+    "name": "string",
+    "decription": "string",
+    "price": 0,
+    "tax": 0
+  }
+}
+
+Example:
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel
+
+
+app=FastAPI()
+class Item(BaseModel):
+    name:str
+    decription:Optional[str]=None  #optional
+    price:float
+    tax:float | None=None           #optional
+
+class User(BaseModel):
+    username:str
+    fullname:str|None=None
+ 
+
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id:int=Path(...,title="this is path paramter",ge=0,le=150),
+    q:str|None=None,
+    item:Item=Body(...,embed=True),
+ 
+    ):
+
+    results={"item_id":item_id}
+    if q:
+        results.update({"q":q})
+    if item:
+        results.update({"item":item})
+ 
+
+    return results
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:6: 7: 8: Body - Field
+==============================
+To specify the metadata for the BaseModel class we can use Field() object.
+as we are using Path(),Body(),Query objets for path,Request Body and Query Params repectively
+the same way we can also use for BaseMode Fields
+
+firstly we need to import the Field
+
+from pydantic import BaseModel,Field.
+
+class Item(BaseModel):
+    name:str
+    description:str=Field(...,)
+
+
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=Field(None,title="this is filed object ",max_length=10,min_length=3)
+    price:float=Field(...,gt=0,description="the price must be greater then zero")
+    tax:float|None=None
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item=Body(...,embed=True)):
+    results={"item id ": item_id,"item":item}
+    return results
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 9 :Body - Nested Models
+=================================
+--> One the way we can nest the body by using the tag:list
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[]
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+request body
+{
+  "name": "hello world",
+  "description": "string",
+  "price": 0,
+  "tax": 0,
+  "tag": [100,200,"hello"]
+}
+
+so we are using pydantic we are specific to type where we are passing to list.
+suppose we need to send the lst strings
+Example2:
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str]
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+requesting body
+
+{
+  "name": "string",
+  "description": "string",
+  "price": 0,
+  "tax": 0,
+  "tag": [
+    "hello","world","tom"
+
+  ]
+}
+
+response body:
+{
+  "item id ": 123,
+  "item": {
+    "name": "string",
+    "description": "string",
+    "price": 0,
+    "tax": 0,
+    "tag": [
+      "hello",
+      "world",
+      "tom"
+    ]
+  }
+}
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str] #so we can pass the any type of list from here like int,float,bool
+
+suppose if we want to take 
+         tag:list=set()-->it wont behave like set again it behave like a list only
+
+but we change like this then only it will behave like 
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:set[str]=set()
+
+typing should be match on the both sides.
+
+NestTed Models:
+--------------
+
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Image(BaseModel):
+    url:str
+    name:str
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str] #so we can pass the any type of list from here like int,float,bool
+    image:Image | None=None #Nested Models
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+
+Response body
+ 
+{
+  "item id ": 123,
+  "item": {
+    "name": "string",
+    "description": "string",
+    "price": 0,
+    "tax": 0,
+    "tag": [
+      "string"
+    ],
+    "image": {
+      "url": "string",
+      "name": "string"
+    }
+  }
+}
+
+in the above exampe we are using url as a string type:
+
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Image(BaseModel):
+    url:str=Field(...,regex='^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)$')
+    name:str
+
+#one of the way we can use by Field() object with regex expression, the below example is not working.
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str] #so we can pass the any type of list from here like int,float,bool
+    image:Image | None=None #Nested Models
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+we can refer: https://ihateregex.io/?q=url for regular expression
+And we can check all Field Types in Pydantic site:
+
+second way we can accomplish this example:
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field,HttpUrl
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Image(BaseModel):
+    url:HttpUrl
+    name:str
+
+#one of the way we can use by Field() object with regex expression
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str] #so we can pass the any type of list from here like int,float,bool
+    image:Image | None=None #Nested Models
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+
+suppose if we want to send list of images then :
+Example:
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field,HttpUrl
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Image(BaseModel):
+    url:HttpUrl
+    name:str
+
+#suppose if we want to send list of images then we can do 
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str]  
+    image:list[Image] | None=None #passing the Image class in list we can pass the list of images.
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+
+Lets Nest Models within the Models Example:
+------------------------------------------
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field,HttpUrl
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Image(BaseModel):
+    url:HttpUrl
+    name:str
+
+ 
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str]  
+    image:list[Image] | None=None  
+
+class Offer(BaseModel):
+    name:str
+    description:str | None=None 
+    price:float 
+    items:list[Item]
+
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+@app.post("/offer")
+async def create_offer(offer:Offer=Body(...,embed=True)):
+    return offer
+
+
+@app.post("/images/multiple")
+async def create_multiple_images(images:list[Image]=Body(...,embed=True)):
+    return images
+
+@app.post("/sample_dict")
+async def create_dict(sample_dict:dict[int,float]):
+    return sample_dict
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 10: Declare Request Example Data
+==========================================
+    we are looking in these session how we can include information in the request body:
+    there are three ways we can do this.
+
+example1: Not Working
+ 
+from fastapi import FastAPI 
+from pydantic import BaseModel 
+   
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+
+    
+    class Config:
+        schema_extra={
+            "example":{
+                "name":"Foo",
+                "description":"a very price nice item",
+                "price":16.25,
+                "tax":1.67,
+
+            }
+        }
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+
+2.Way we can achive it. not a right way:
+By deafult we can get this example if we do this way:
+{
+  "name": "Foo",
+  "description": "a very price nice item",
+  "price": 16.25,
+  "tax": 16.25
+}
+
+Example:
+ 
+from fastapi import FastAPI 
+from pydantic import BaseModel,Field
+   
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str=Field(...,example="Foo")
+    description:str|None=Field(None,example="a very price nice item")
+    price:float=Field(...,example=16.25)
+    tax:float|None=Field(None,example=16.25)
+
+    
+    class Config:
+        schema_extra={
+            "example":{
+                "name":"Foo",
+                "description":"a very price nice item",
+                "price":16.25,
+                "tax":1.67,
+
+            }
+        }
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+third way doing the same as we do in the above:
+Example:
+ 
+from fastapi import FastAPI ,Body
+from pydantic import BaseModel 
+   
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+
+
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id:int,item:Item=Body(...,example={
+                "name":"Foo",
+                "description":"a very price nice item",
+                "price":16.25,
+                "tax":1.67,
+
+            })):
+    results={"item id ": item_id,"item":item}
+    return results
+
+Example4: Not working
+ 
+from fastapi import FastAPI ,Body
+from pydantic import BaseModel 
+   
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+ 
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id:int,
+    item:Item=Body(
+        ...,
+        examples={
+
+            "normal":{
+                "Summary":"An normal Example",
+                "description":"A normal example item works correctly",
+                "value":{
+                    "name":"Foo",
+                    "description":"a very price nice item",
+                    "price":16.25,
+                    "tax":1.67,
+                }
+            },
+            "converted":{
+                "summary":"An Example with converted data",
+                "description":"FastAPI can converts price string to actual number automatically",
+                "value":{"name":"Bar","price":"16.25"},
+            },
+            "Invalid":{
+                "Summary":"Invalid data is rejected with an error",
+                "description":"hello you tubers",
+                "value":{"name":"Baz","price":"sixteen point two five"},
+            },
+        }
+                )):
+    results={"item id ": item_id,"item":item}
+    return results
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 11: Extra Data Types
+=============================
+
+Example of UUID:
+----------------
+ 
+from fastapi import FastAPI ,Body
+from pydantic import BaseModel 
+from uuid import UUID 
+from datetime import datetime,time,timedelta
+
+app=FastAPI()
+ 
+  
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id:UUID,
+    start_date:datetime | None=Body(None),
+    end_date:datetime|None=Body(None),
+    repeat_at:time | None=Body(None),
+    process_after:timedelta | None=Body(None)
+
+):
+    start_process=start_date + process_after
+    duration=end_date -start_process
+    return {
+        "item id ": item_id,
+        "start date" : start_date,
+        "end date ":end_date,
+        "repeat_at":repeat_at,
+        "process_after":process_after,
+        "start_process":start_process,
+        "duration":duration
+        }
+        
+"""
+    (fast_env) C:\Users\preet\OneDrive\Desktop\FAST_API>python
+    Python 3.11.6 (tags/v3.11.6:8b6ee5b, Oct  2 2023, 14:57:12) [MSC v.1935 64 bit (AMD64)] on win32
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from uuid import uuid4
+    >>> uuid4()
+    UUID('9e5318e4-9e10-4e57-b8b3-396883fffca4')
+    >>>
+"""
+request Body:
+curl -X 'PUT' \
+  'http://127.0.0.1:8000/items/9e5318e4-9e10-4e57-b8b3-396883fffca4' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "start_date": "2023-12-11T14:24:55.402Z",
+  "end_date": "2023-12-11T14:24:55.402Z",
+  "repeat_at": "14:24:55.402Z",
+  "process_after": "P3D"
+}'
+response:
+{
+  "item id ": "9e5318e4-9e10-4e57-b8b3-396883fffca4",
+  "start date": "2023-12-11T14:24:55.402000+00:00",
+  "end date ": "2023-12-11T14:24:55.402000+00:00",
+  "repeat_at": "14:24:55.402000+00:00",
+  "process_after": 259200,
+  "start_process": "2023-12-14T14:24:55.402000+00:00",
+  "duration": -259200
+}
+
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 
+=================================
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+ 
+
+ 
+
+
+
+
+
+    
+
+
+
+
+
+
+ 
+
+ 
+
+
+
+
+    
+
+
+
+
+
+
+ 
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+

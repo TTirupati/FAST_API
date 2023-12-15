@@ -1,0 +1,7 @@
+what is the difference betwen async and wait and with this keyword defining the routes.
+In the path params when we use validation  as Query(...) , what is means?
+what is the difference between doc and redoc in the swagger documentation.
+what is the use of curl
+
+ 
+

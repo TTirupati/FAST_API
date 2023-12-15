@@ -1,0 +1,963 @@
+{
+    "status": true,
+    "message": "successfully extracted fields from imported message",
+    "error_data": [],
+    "data": {
+      "PID": {
+        "PID_3": {
+          "PID_3_1": {
+            "value": "MRN0468",
+            "error_list": []
+          }
+        },
+        "PID_5": {
+          "PID_5_1": {
+            "value": "LastName",
+            "error_list": []
+          },
+          "PID_5_2": {
+            "value": "FirstName",
+            "error_list": []
+          },
+          "PID_5_3": {
+            "value": "MiddleInitial",
+            "error_list": []
+          },
+          "PID_5_4": {
+            "value": "Sr.",
+            "error_list": []
+          }
+        },
+        "PID_7": {
+          "PID_7_1": {
+            "value": "196909181134",
+            "error_list": []
+          }
+        },
+        "PID_8": {
+          "value": "F",
+          "error_list": []
+        },
+        "PID_11": {
+          "PID_11_1": {
+            "value": "Address",
+            "error_list": []
+          },
+          "PID_11_3": {
+            "value": "City",
+            "error_list": []
+          },
+          "PID_11_4": {
+            "value": "State",
+            "error_list": []
+          },
+          "PID_11_5": {
+            "value": "Zip",
+            "error_list": []
+          },
+          "PID_11_6": {
+            "value": "Country",
+            "error_list": []
+          }
+        },
+        "PID_13": {
+          "PID_13_1": {
+            "value": "(650)128-8888",
+            "error_list": []
+          },
+          "PID_13_4": {
+            "value": "Email@test.com",
+            "error_list": []
+          }
+        },
+        "PID_14": {
+          "PID_14_1": {
+            "value": "(408)128-8888",
+            "error_list": []
+          }
+        }
+      },
+      "PV1": {
+        "PV1_7": {
+          "PV1_7_1": {
+            "value": "8000",
+            "error_list": []
+          },
+          "PV1_7_2": {
+            "value": "LastName",
+            "error_list": []
+          },
+          "PV1_7_3": {
+            "value": "FirstName",
+            "error_list": []
+          },
+          "PV1_7_4": {
+            "value": "MiddleInitial",
+            "error_list": []
+          }
+        }
+      },
+      "ORC": {
+        "ORC_1": {
+          "value": "NW",
+          "error_list": []
+        },
+        "ORC_2": {
+          "ORC_2_1": {
+            "value": "S8-000001",
+            "error_list": []
+          },
+          "ORC_2_3": {
+            "value": "",
+            "error_list": []
+          }
+        },
+        "ORC_17": {
+          "ORC_17_1": {
+            "value": "San Francisco",
+            "error_list": []
+          },
+          "ORC_17_2": {
+            "value": "San Francisco VA",
+            "error_list": []
+          }
+        },
+        "ORC_21": {
+          "ORC_21_1": {
+            "value": "VMSI",
+            "error_list": []
+          },
+          "ORC_21_2": {
+            "value": "Ventana Medical Systems",
+            "error_list": []
+          }
+        }
+      }
+    },
+    "specimen": {
+      "S8-000001;1": {
+        "S8-000001;1;A;S1": {
+          "OBR": {
+            "OBR_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBR_2": {
+              "value": "S8-000001 1 A 1",
+              "error_list": []
+            },
+            "OBR_4": {
+              "OBR_4_1": {
+                "value": "123",
+                "error_list": []
+              },
+              "OBR_4_2": {
+                "value": "HER-2",
+                "error_list": []
+              },
+              "OBR_4_3": {
+                "value": "STAIN",
+                "error_list": []
+              },
+              "OBR_4_5": {
+                "value": "Desc-HER-2",
+                "error_list": []
+              }
+            },
+            "OBR_7": {
+              "value": "200004221134",
+              "error_list": []
+            },
+            "OBR_14": {
+              "value": "200804191134",
+              "error_list": []
+            },
+            "OBR_15": {
+              "OBR_15_1": {
+                "value": "Breast",
+                "error_list": []
+              },
+              "OBR_15_2": {
+                "value": "Desc-Breast",
+                "error_list": []
+              },
+              "OBR_15_3": {
+                "value": "SP Name",
+                "error_list": []
+              },
+              "OBR_15_4": {
+                "value": "SP Description",
+                "error_list": []
+              },
+              "OBR_15_7": {
+                "value": "",
+                "error_list": []
+              }
+            },
+            "OBR_16": {
+              "OBR_16_1": {
+                "value": "1234",
+                "error_list": []
+              },
+              "OBR_16_2": {
+                "value": "LastName",
+                "error_list": []
+              },
+              "OBR_16_3": {
+                "value": "FirstName",
+                "error_list": []
+              },
+              "OBR_16_4": {
+                "value": "MI",
+                "error_list": []
+              }
+            },
+            "OBR_17": {
+              "OBR_17_1": {
+                "value": "(408)128-8888",
+                "error_list": []
+              },
+              "OBR_17_4": {
+                "value": "Email@test.com",
+                "error_list": []
+              }
+            },
+            "OBR_18": {
+              "value": "INTEGRATED_TREATINGMD",
+              "error_list": []
+            },
+            "OBR_21": {
+              "value": "S8-000001;1^1^TCSP-1",
+              "error_list": []
+            },
+            "OBR_19": {
+              "OBR_19_1": {
+                "value": "S8-000001;1;A;S1",
+                "error_list": []
+              },
+              "OBR_19_2": {
+                "value": "1",
+                "error_list": []
+              },
+              "OBR_19_3": {
+                "value": "TCS-01",
+                "error_list": []
+              },
+              "OBR_19_4": {
+                "value": "S1 Comments",
+                "error_list": []
+              }
+            },
+            "OBR_20": {
+              "OBR_20_1": {
+                "value": "S8-000001;1;A",
+                "error_list": []
+              },
+              "OBR_20_2": {
+                "value": "A",
+                "error_list": []
+              },
+              "OBR_20_3": {
+                "value": "TCB-A",
+                "error_list": []
+              }
+            }
+          },
+          "OBX": {
+            "OBX_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBX_2": {
+              "value": "CE",
+              "error_list": []
+            },
+            "OBX_5": {
+              "OBX_5_1": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_2": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_3": {
+                "value": "Ventana",
+                "error_list": []
+              },
+              "OBX_5_4": {
+                "value": "4B5",
+                "error_list": []
+              },
+              "OBX_5_5": {
+                "value": "Ventana",
+                "error_list": []
+              }
+            },
+            "OBX_3": {
+              "value": "S8-000001;1;A;S1",
+              "error_list": []
+            }
+          }
+        },
+        "S8-000001;1;A;S2": {
+          "OBR": {
+            "OBR_1": {
+              "value": "2",
+              "error_list": []
+            },
+            "OBR_2": {
+              "value": "S8-000001 1 A 2",
+              "error_list": []
+            },
+            "OBR_4": {
+              "OBR_4_1": {
+                "value": "124",
+                "error_list": []
+              },
+              "OBR_4_2": {
+                "value": "ER",
+                "error_list": []
+              },
+              "OBR_4_3": {
+                "value": "STAIN",
+                "error_list": []
+              },
+              "OBR_4_5": {
+                "value": "Desc-ER",
+                "error_list": []
+              }
+            },
+            "OBR_7": {
+              "value": "200004221134",
+              "error_list": []
+            },
+            "OBR_14": {
+              "value": "200804191134",
+              "error_list": []
+            },
+            "OBR_15": {
+              "OBR_15_1": {
+                "value": "Breast",
+                "error_list": []
+              },
+              "OBR_15_2": {
+                "value": "Desc-Breast",
+                "error_list": []
+              },
+              "OBR_15_3": {
+                "value": "SP Name",
+                "error_list": []
+              },
+              "OBR_15_4": {
+                "value": "SP Description",
+                "error_list": []
+              },
+              "OBR_15_7": {
+                "value": "",
+                "error_list": []
+              }
+            },
+            "OBR_16": {
+              "OBR_16_1": {
+                "value": "1234",
+                "error_list": []
+              },
+              "OBR_16_2": {
+                "value": "LastName",
+                "error_list": []
+              },
+              "OBR_16_3": {
+                "value": "FirstName",
+                "error_list": []
+              },
+              "OBR_16_4": {
+                "value": "MI",
+                "error_list": []
+              }
+            },
+            "OBR_17": {
+              "OBR_17_1": {
+                "value": "(408)128-8888",
+                "error_list": []
+              },
+              "OBR_17_4": {
+                "value": "Email@test.com",
+                "error_list": []
+              }
+            },
+            "OBR_18": {
+              "value": "INTEGRATED_TREATINGMD",
+              "error_list": []
+            },
+            "OBR_21": {
+              "value": "S8-000001;1^1^TCSP-1",
+              "error_list": []
+            },
+            "OBR_19": {
+              "OBR_19_1": {
+                "value": "S8-000001;1;A;S2",
+                "error_list": []
+              },
+              "OBR_19_2": {
+                "value": "2",
+                "error_list": []
+              },
+              "OBR_19_3": {
+                "value": "TCS-02",
+                "error_list": []
+              },
+              "OBR_19_4": {
+                "value": "S2 Comments",
+                "error_list": []
+              }
+            },
+            "OBR_20": {
+              "OBR_20_1": {
+                "value": "S8-000001;1;A",
+                "error_list": []
+              },
+              "OBR_20_2": {
+                "value": "A",
+                "error_list": []
+              },
+              "OBR_20_3": {
+                "value": "TCB-A",
+                "error_list": []
+              }
+            }
+          },
+          "OBX": {
+            "OBX_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBX_2": {
+              "value": "CE",
+              "error_list": []
+            },
+            "OBX_5": {
+              "OBX_5_1": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_2": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_3": {
+                "value": "Ventana",
+                "error_list": []
+              },
+              "OBX_5_4": {
+                "value": "SP1",
+                "error_list": []
+              },
+              "OBX_5_5": {
+                "value": "Ventana",
+                "error_list": []
+              }
+            },
+            "OBX_3": {
+              "value": "S8-000001;1;A;S2",
+              "error_list": []
+            }
+          }
+        },
+        "S8-000001;1;A;S3": {
+          "OBR": {
+            "OBR_1": {
+              "value": "3",
+              "error_list": []
+            },
+            "OBR_2": {
+              "value": "S8-000001 1 A 3",
+              "error_list": []
+            },
+            "OBR_4": {
+              "OBR_4_1": {
+                "value": "125",
+                "error_list": []
+              },
+              "OBR_4_2": {
+                "value": "PR",
+                "error_list": []
+              },
+              "OBR_4_3": {
+                "value": "STAIN",
+                "error_list": []
+              },
+              "OBR_4_5": {
+                "value": "Desc-PR",
+                "error_list": []
+              }
+            },
+            "OBR_7": {
+              "value": "200004221134",
+              "error_list": []
+            },
+            "OBR_14": {
+              "value": "200804191134",
+              "error_list": []
+            },
+            "OBR_15": {
+              "OBR_15_1": {
+                "value": "Breast",
+                "error_list": []
+              },
+              "OBR_15_2": {
+                "value": "Desc-Breast",
+                "error_list": []
+              },
+              "OBR_15_3": {
+                "value": "SP Name",
+                "error_list": []
+              },
+              "OBR_15_4": {
+                "value": "SP Description",
+                "error_list": []
+              },
+              "OBR_15_7": {
+                "value": "",
+                "error_list": []
+              }
+            },
+            "OBR_16": {
+              "OBR_16_1": {
+                "value": "1234",
+                "error_list": []
+              },
+              "OBR_16_2": {
+                "value": "LastName",
+                "error_list": []
+              },
+              "OBR_16_3": {
+                "value": "FirstName",
+                "error_list": []
+              },
+              "OBR_16_4": {
+                "value": "MI",
+                "error_list": []
+              }
+            },
+            "OBR_17": {
+              "OBR_17_1": {
+                "value": "(408)128-8888",
+                "error_list": []
+              },
+              "OBR_17_4": {
+                "value": "Email@test.com",
+                "error_list": []
+              }
+            },
+            "OBR_18": {
+              "value": "INTEGRATED_TREATINGMD",
+              "error_list": []
+            },
+            "OBR_21": {
+              "value": "S8-000001;1^1^TCSP-1",
+              "error_list": []
+            },
+            "OBR_19": {
+              "OBR_19_1": {
+                "value": "S8-000001;1;A;S3",
+                "error_list": []
+              },
+              "OBR_19_2": {
+                "value": "3",
+                "error_list": []
+              },
+              "OBR_19_3": {
+                "value": "TCS-03",
+                "error_list": []
+              },
+              "OBR_19_4": {
+                "value": "S3 Comments",
+                "error_list": []
+              }
+            },
+            "OBR_20": {
+              "OBR_20_1": {
+                "value": "S8-000001;1;A",
+                "error_list": []
+              },
+              "OBR_20_2": {
+                "value": "A",
+                "error_list": []
+              },
+              "OBR_20_3": {
+                "value": "TCB-A",
+                "error_list": []
+              }
+            }
+          },
+          "OBX": {
+            "OBX_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBX_2": {
+              "value": "CE",
+              "error_list": []
+            },
+            "OBX_5": {
+              "OBX_5_1": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_2": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_3": {
+                "value": "Ventana",
+                "error_list": []
+              },
+              "OBX_5_4": {
+                "value": "1E2",
+                "error_list": []
+              },
+              "OBX_5_5": {
+                "value": "Ventana",
+                "error_list": []
+              }
+            },
+            "OBX_3": {
+              "value": "S8-000001;1;A;S3",
+              "error_list": []
+            }
+          }
+        }
+      },
+      "S8-000001;2": {
+        "S8-000001;2;B;S1": {
+          "OBR": {
+            "OBR_1": {
+              "value": "4",
+              "error_list": []
+            },
+            "OBR_2": {
+              "value": "S8-000001 2 B 1",
+              "error_list": []
+            },
+            "OBR_4": {
+              "OBR_4_1": {
+                "value": "123",
+                "error_list": []
+              },
+              "OBR_4_2": {
+                "value": "HER-2",
+                "error_list": []
+              },
+              "OBR_4_3": {
+                "value": "STAIN",
+                "error_list": []
+              },
+              "OBR_4_5": {
+                "value": "Desc-HER-2",
+                "error_list": []
+              }
+            },
+            "OBR_7": {
+              "value": "200004221134",
+              "error_list": []
+            },
+            "OBR_14": {
+              "value": "200804191134",
+              "error_list": []
+            },
+            "OBR_15": {
+              "OBR_15_1": {
+                "value": "Gastric",
+                "error_list": []
+              },
+              "OBR_15_2": {
+                "value": "Desc-Gastric",
+                "error_list": []
+              },
+              "OBR_15_3": {
+                "value": "SP Name",
+                "error_list": []
+              },
+              "OBR_15_4": {
+                "value": "SP Description",
+                "error_list": []
+              },
+              "OBR_15_7": {
+                "value": "",
+                "error_list": []
+              }
+            },
+            "OBR_16": {
+              "OBR_16_1": {
+                "value": "1234",
+                "error_list": []
+              },
+              "OBR_16_2": {
+                "value": "LastName",
+                "error_list": []
+              },
+              "OBR_16_3": {
+                "value": "FirstName",
+                "error_list": []
+              },
+              "OBR_16_4": {
+                "value": "MI",
+                "error_list": []
+              }
+            },
+            "OBR_17": {
+              "OBR_17_1": {
+                "value": "(408)128-8888",
+                "error_list": []
+              },
+              "OBR_17_4": {
+                "value": "Email@test.com",
+                "error_list": []
+              }
+            },
+            "OBR_18": {
+              "value": "INTEGRATED_TREATINGMD",
+              "error_list": []
+            },
+            "OBR_21": {
+              "value": "S8-000001;2^2^TCSP-2",
+              "error_list": []
+            },
+            "OBR_19": {
+              "OBR_19_1": {
+                "value": "S8-000001;2;B;S1",
+                "error_list": []
+              },
+              "OBR_19_2": {
+                "value": "1",
+                "error_list": []
+              },
+              "OBR_19_3": {
+                "value": "TCS-04",
+                "error_list": []
+              },
+              "OBR_19_4": {
+                "value": "S4 Comments",
+                "error_list": []
+              }
+            },
+            "OBR_20": {
+              "OBR_20_1": {
+                "value": "S8-000001;2;B",
+                "error_list": []
+              },
+              "OBR_20_2": {
+                "value": "B",
+                "error_list": []
+              },
+              "OBR_20_3": {
+                "value": "TCB-B",
+                "error_list": []
+              }
+            }
+          },
+          "OBX": {
+            "OBX_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBX_2": {
+              "value": "CE",
+              "error_list": []
+            },
+            "OBX_5": {
+              "OBX_5_1": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_2": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_3": {
+                "value": "Ventana",
+                "error_list": []
+              },
+              "OBX_5_4": {
+                "value": "4B5",
+                "error_list": []
+              },
+              "OBX_5_5": {
+                "value": "Ventana",
+                "error_list": []
+              }
+            },
+            "OBX_3": {
+              "value": "S8-000001;2;B;S1",
+              "error_list": []
+            }
+          }
+        },
+        "S8-000001;2;B;S2": {
+          "OBR": {
+            "OBR_1": {
+              "value": "5",
+              "error_list": []
+            },
+            "OBR_2": {
+              "value": "S8-000001 2 B 2",
+              "error_list": []
+            },
+            "OBR_4": {
+              "OBR_4_1": {
+                "value": "123",
+                "error_list": []
+              },
+              "OBR_4_2": {
+                "value": "ER",
+                "error_list": []
+              },
+              "OBR_4_3": {
+                "value": "STAIN",
+                "error_list": []
+              },
+              "OBR_4_5": {
+                "value": "Desc-ER",
+                "error_list": []
+              }
+            },
+            "OBR_7": {
+              "value": "200004221134",
+              "error_list": []
+            },
+            "OBR_14": {
+              "value": "200804191134",
+              "error_list": []
+            },
+            "OBR_15": {
+              "OBR_15_1": {
+                "value": "Gastric",
+                "error_list": []
+              },
+              "OBR_15_2": {
+                "value": "Desc-Gastric",
+                "error_list": []
+              },
+              "OBR_15_3": {
+                "value": "SP Name",
+                "error_list": []
+              },
+              "OBR_15_4": {
+                "value": "SP Description",
+                "error_list": []
+              },
+              "OBR_15_7": {
+                "value": "",
+                "error_list": []
+              }
+            },
+            "OBR_16": {
+              "OBR_16_1": {
+                "value": "1234",
+                "error_list": []
+              },
+              "OBR_16_2": {
+                "value": "LastName",
+                "error_list": []
+              },
+              "OBR_16_3": {
+                "value": "FirstName",
+                "error_list": []
+              },
+              "OBR_16_4": {
+                "value": "MI",
+                "error_list": []
+              }
+            },
+            "OBR_17": {
+              "OBR_17_1": {
+                "value": "(408)128-8888",
+                "error_list": []
+              },
+              "OBR_17_4": {
+                "value": "Email@test.com",
+                "error_list": []
+              }
+            },
+            "OBR_18": {
+              "value": "INTEGRATED_TREATINGMD",
+              "error_list": []
+            },
+            "OBR_21": {
+              "value": "S8-000001;2^2^TCSP-2",
+              "error_list": []
+            },
+            "OBR_19": {
+              "OBR_19_1": {
+                "value": "S8-000001;2;B;S2",
+                "error_list": []
+              },
+              "OBR_19_2": {
+                "value": "2",
+                "error_list": []
+              },
+              "OBR_19_3": {
+                "value": "TCS-05",
+                "error_list": []
+              },
+              "OBR_19_4": {
+                "value": "S5 Comments",
+                "error_list": []
+              }
+            },
+            "OBR_20": {
+              "OBR_20_1": {
+                "value": "S8-000001;2;B",
+                "error_list": []
+              },
+              "OBR_20_2": {
+                "value": "B",
+                "error_list": []
+              },
+              "OBR_20_3": {
+                "value": "TCB-B",
+                "error_list": []
+              }
+            }
+          },
+          "OBX": {
+            "OBX_1": {
+              "value": "1",
+              "error_list": []
+            },
+            "OBX_2": {
+              "value": "CE",
+              "error_list": []
+            },
+            "OBX_5": {
+              "OBX_5_1": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_2": {
+                "value": "None",
+                "error_list": []
+              },
+              "OBX_5_3": {
+                "value": "Ventana",
+                "error_list": []
+              },
+              "OBX_5_4": {
+                "value": "SP1",
+                "error_list": []
+              },
+              "OBX_5_5": {
+                "value": "Ventana",
+                "error_list": []
+              }
+            },
+            "OBX_3": {
+              "value": "S8-000001;2;B;S2",
+              "error_list": []
+            }
+          }
+        }
+      }
+    }
+  }
