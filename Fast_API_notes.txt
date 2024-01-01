@@ -1,3 +1,8 @@
+Real time project:
+        https://www.youtube.com/watch?v=QQXQAZuJSdw&list=PLEt8Tae2spYnLMAf8RGCNYhovIFZHVsPP&index=1
+        https://www.youtube.com/watch?v=8gx3wrGi7_U
+
+
 To install FastAPI:
     pip install fastapi
 
@@ -595,7 +600,7 @@ async def read_item(
     return result
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session:6: 7: Body - Multiple Parameters
+Session: 7: Body - Multiple Parameters
 =========================================
 class Item(BaseModel):
     name:str
@@ -769,10 +774,10 @@ async def update_item(
 
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session:6: 7: 8: Body - Field
+Session: 8: Body - Field
 ==============================
 To specify the metadata for the BaseModel class we can use Field() object.
-as we are using Path(),Body(),Query objets for path,Request Body and Query Params repectively
+as we are using Path(),Body(),Query() objets for path,Request Body and Query Params repectively
 the same way we can also use for BaseMode Fields
 
 firstly we need to import the Field
@@ -1290,55 +1295,1267 @@ response:
 
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 12: Cookie and Header Parameters
+=========================================
+from fastapi import FastAPI, Body,Path,Cookie,Header
+
+
+app = FastAPI()
+
+"""
+got to swagger and inspects--->network--items--<Request Body Header
+
+"""
+@app.get("/items")
+async def read_items(
+        cookies_id      :str | None = Cookie(None),
+        accept_encoding :str |None  = Header(None),
+        sec_ch_ua       :str |None  = Header(None),
+        user_agent      :str |None  = Header(None),
+        x_token         :list[str] |None  = Header(None),
+
+
+):
+    return {
+            "cookies_id"        : cookies_id,
+            "accept_encoding"   : accept_encoding,
+            "sec_ch_ua"         : sec_ch_ua,
+            "user_agent"        : user_agent,
+            "x_token"           : x_token,
+
+            }
+
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 13: Response Model
+===========================
+
+in the swagger we can see, schema is a string if we not set response model.
+
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name        :str
+    description :str    |None=None
+    price       :float
+    tax         :float  |None=None
+    tags        :list[str]=[]
+
+@app.post("/items/",response_model=Item)
+async def create_item(item:Item):
+    return item
+
+
+Example2:
+========
+class UserIn(BaseModel):
+    username : str
+    password : str
+    email    : EmailStr
+    full_name :str | None =None
+
+@app.post("/user/",response_model=UserIn)
+async def create_user(user: UserIn):
+    return user
+
+actually password id visible in the reponse body, that is not at all good so what we can do
+
+Example3:
+=========
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+
+app = FastAPI()
+
+
+class UserBase(BaseModel):
+    username : str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserIn(UserBase):
+    password : str
+
+class UserOut(UserBase):
+    pass
+
+
+@app.post("/user/",response_model=UserOut)
+async def create_user(user: UserIn):
+    return user
+
+Now we can see the difference in request body and response body or schema.
+request body
+
+{
+  "username": "string",
+  "email": "user@example.com",
+  "full_name": "string",
+  "password": "string"
+}
+
+response body
+{
+  "username": "string",
+  "email": "user@example.com",
+  "full_name": "string"
+}
+
+ 
+
+Example:-->how we can exlude and include elements in response_model:
+=======
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal
+app = FastAPI()
+
+
+class Item(BaseModel):
+    name        :str
+    description :str    |None=None
+    price       :float
+    tax         :float  =10.5
+    tags        :list[str]=[]
+
+items={
+    "foo":{"name":"Foo","price":50.2},
+    "bar":{"name":"Bar","description":"The barattender","price":62,"tax":20.3},
+    "baz":{"name":"Baz","decription":None,"price":50.2,"tax":10.5,"tags":[]}
+}
+'''
+response_model_exclude_unset=True: if we include this will not get any default values which we set
+above in items dictionary.
+
+
+'''
+@app.get("/items/{item_id}",response_model=Item,response_model_exclude_unset=True)
+async def read_item(item_id:Literal["foo","bar","baz"]):
+    return items[item_id]
+
+ 
+@app.get("/items/{item_id}/name",response_model=Item,response_model_include={"name","description"})
+async def read_item_name(item_id:Literal["foo","bar","baz"]):
+    return items[item_id]
+
+ 
+  
+@app.get("/items/{item_id}/public",response_model=Item,response_model_exclude={"tax"})
+async def read_item_public(item_id:Literal["foo","bar","baz"]):
+    return items[item_id]
+
+
+Example:
+=======
+in the given example we are includng some items and excluding the password from the response
+model.
+
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal
+app = FastAPI()
+
+
+class UserBase(BaseModel):
+    username : str
+    email: EmailStr
+    password : str| None = None
+    full_name: str | None = None
+
+user={
+    "foo":{"username":"Foo","email":"foo@gmail.com"},
+    "bar":{"username":"Bar","email":"foo@gmail.com","password":"bar1234","full_name":'Attender'},
+    "baz":{"username":"Baz","email":"foo@gmail.com","password":"baz123"}
+}
+@app.get("/user/{user_id}",response_model=UserBase)
+async def get(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+ 
+@app.get("/user/{user_id}/name",response_model=UserBase,response_model_include={"username","email"})
+async def get_name(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+
+@app.get("/user/{user_id}/public",response_model=UserBase,response_model_exclude={"password"})
+async def get_name_public(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 14: Extra Models
+=========================
+Exmaple:
+=======
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal
+app = FastAPI()
+
+
+class UserIn(BaseModel):
+    username : str 
+    password : str 
+    email : EmailStr
+    full_name: str | None =None
+
+class UserOut(BaseModel):
+    username : str 
+    email : EmailStr
+    full_name: str | None =None
+
+class UserInDB(BaseModel):
+    username : str 
+    hashed_password : str 
+    email : EmailStr
+    full_name: str | None =None
+
+def fake_password_hasher(raw_password: str):
+    return f"supersecret{raw_password}"
+
+def fake_save_user(user_in:UserIn):
+    hashed_password=fake_password_hasher(user_in.password)
+    user_in_db=UserInDB(**user_in.dict(),hashed_password=hashed_password)/
+    #if we provide the extrac params also it will take only declared ones, remaining will gets skipped.
+    # print(UserInDB(
+    #     username="hello",
+    #     email="email@gmail.com",
+    #     password="password",
+    #     hello="world",
+    #     foo="bar"
+
+
+
+    # ))
+    print("User Saved..",user_in_db)
+    return user_in_db 
+
+@app.post("/user/",response_model=UserOut)
+async def create_user(user_in:UserIn):
+    user_saved=fake_save_user(user_in) #saving the like in a database
+    return user_saved
+
+Now lets remove some of the duplication using AsbractBase class.
+================================================================
+Exmaple:
+=======
+rom fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal
+app = FastAPI()
+
+class UserBase(BaseModel):
+    username : str 
+    email : EmailStr
+    full_name: str | None =None
+
+class UserIn(UserBase):
+    password : str 
+  
+
+class UserOut(UserBase):
+    pass
+
+class UserInDB(UserBase):
+    hashed_password : str 
+ 
+
+def fake_password_hasher(raw_password: str):
+    return f"supersecret{raw_password}"
+
+def fake_save_user(user_in:UserIn):
+    hashed_password=fake_password_hasher(user_in.password)
+    user_in_db=UserInDB(**user_in.dict(),hashed_password=hashed_password)/
+    print("User Saved..",user_in_db)
+    return user_in_db 
+
+@app.post("/user/",response_model=UserOut)
+async def create_user(user_in:UserIn):
+    user_saved=fake_save_user(user_in) #saving the like in a database
+    return user_saved
+
+Now lets see the Union types:
+=============================
+Example: Notw working getting bugs
+=======
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal,Union
+app = FastAPI()
+
+
+class BaseItem(BaseModel):
+    description: str
+    type: str
+
+class CarItem(BaseItem):
+    type="car"
+   
+
+class PlanItem(BaseItem):
+    type="plane"
+    size: int
+   
+
+items={
+    "item1":{"description":"all my friends drive a low rider","type":"car"},
+    "item2":{"description":"Music is my plane ","type":"plane","size":5}
+}
+
+@app.get("/items/{item_id}",response_model=Union[PlanItem,CarItem])
+async def read_items(item_id:Literal["Item1","item2"]):
+    return items[item_id]
+
+
+in the above example instead of using Union 
+like 
+    @app.get("/items/{item_id}",response_model=Union[PlanItem,CarItem])
+we can use:
+    @app.get("/items/{item_id}",response_model=PlanItem | CarItem)
+
+or:
+@app.get("/items/{item_id}")
+async def read_items(item_id:Literal["Item1","item2"]-> PlanItem | CarItem):
+    return items[item_id]
+
+
+Example:
+========
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal,Union
+app = FastAPI()
+
+
+
+class ListItem(BaseModel):
+    name: str 
+    description:str 
+
+list_items=[
+    {"name":"Foo","description":"there is my hero"},
+    {"name":"REd","description":"Its my plane"}
+]
+
+@app.get("/list_item/",response_model=list[ListItem])
+async def read_items():
+    return items
+
+@app.get("/arbitrary",response_model=dict[str,float])
+async def get_arbitrary():
+    return {"foo":1,"bar":"2"}
+
+#response_model=dict[str,float]: this defined the key should be string and value should be float if not then it will typecast the value not the key
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 15: Response Status Codes
+==================================
+Exmaple1:
+=======
+from fastapi import FastAPI, Body,Path,Cookie,Header,status
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal,Union
+
+app = FastAPI()
+
+#if we not include the status code by default its show 200 as status code.
+@app.post("/items/",status_code=201)
+async def create_item(name:str):
+    return {"name":name}
+
+@app.delete("/items/{pk}",status_code=204) #204 is No Content status code.
+async def delete_item(pk:str):
+    print("pk :",pk)
+    return pk
+
+@app.get("/items/",status_code=401)
+async def read_item_redirect():
+    return {"hello":"world"}
+
+ Example2:
+ ========
+ from fastapi import FastAPI, Body,Path,Cookie,Header,status
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal,Union
+
+app = FastAPI()
+
+#if we not include the status code by default its show 200 as status code.
+@app.post("/items/",status_code=status.HTTP_201_CREATED)
+async def create_item(name:str):
+    return {"name":name}
+
+@app.delete("/items/{pk}",status_code=status.HTTP_204_NO_CONTENT) #204 is No Content status code.
+async def delete_item(pk:str):
+    print("pk :",pk)
+    return pk
+
+@app.get("/items/",status_code=status.HTTP_302_FOUND)
+async def read_item_redirect():
+    return {"hello":"world"}
+
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 16: Form Fields
+========================
+exmaple: handling the form Feild data with Form:
+----------------------------------------------
+from fastapi import FastAPI, Body,Path,Cookie,Header,status,Form
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal,Union
+
+app = FastAPI()
+
+class User(BaseModel):
+    username: str
+    password: str
+
+@app.post("/login_1/")
+async def login_json(user: User):
+    return user
+
+#the below one also send the data in the form of json only
+@app.post("/login_2/")
+async def login_json_body(user: str=Body(...),password:str=Body(...)):
+    return {"user":user,"password":password}
+
+@app.post("/login_3/")
+async def login_formfield(user: str=Form(...),password:str=Form(...)):
+    return {"user":user,"password":password}
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 17: Request Files [few routes not working]
+==========================
+Example:1
+=========
+from fastapi import FastAPI, File, UploadFile
+
+app = FastAPI()
+
+@app.post("/files/")
+async def create_file(file: bytes=File(...)): #this will ask to updaliad the file and read the content and send as reponse back
+    return {"file":file,"file length":len(file)}
+
+@app.post("/uploadfile/")
+async def create_upload_file(file:UploadFile): #generally we use way
+    return {"file name":file.filename}
+
+@app.post("/uploadfile_2/")
+async def create_upload_file_2(file:UploadFile):
+    contents= await file.read()
+    return {"file name":file.filename
+
+
+ Example:2 Error:
+ ================
+ from fastapi import FastAPI, File, UploadFile
+from starlette.responses import HTMLResponse
+
+app = FastAPI()
+
+#sending the single file
+# @app.post("/file/")
+# async def create_file(file: bytes| None=File(None)):
+#     if not file:
+#         return {"message": "No file sent"}
+#     return {"file":file,"file length":len(file)}
+
+#sending the list of  files:
+@app.post("/files/")
+async def create_files(files: [bytes]=File(None,description="No file sent as bytes")):
+    if not files:
+        return {"message": "No file sent"}
+    return {"files":files,"file length":[len(file) for file in files]}
+
+
+#sending the single file
+# @app.post("/uploadfile/")
+# async def create_upload_file(file:UploadFile | None=File(None,description="A file read as upload file ")):
+#     if not file:
+#         return {"message": "No upload file  sent"}
+#     return {"file name":file.filename}
+
+#sending the list of  files:
+@app.post("/uploadfiles/")
+async def create_upload_files(files :[UploadFile] =File(None,description="A file read as upload file ")):
+    if not files:
+        return {"message": "No upload file  sent"}
+    return {"file name":[file.filename for file in files]}
+
+
+@app.get("/")
+async def main():
+    content="""
+    <body>
+        <form action="/files/ enctype="multipart/form-data method=post>
+        <input type="file" name="files" multiple>
+        <input type="submit" value="">
+        </form>
+
+        <form action="/uplaodfiles/ enctype="multipart/form-data method=post>
+        <input type="file" name="files" multiple>
+        <input type="submit" value="">
+        </form>
+
+    """
+    return HTMLResponse(content=content)
+
+
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 18: Request Forms and Files
+===================================
+The Body sends the data in the json form but while posting data if we have single form data the entire post
+request converts into form data you can check in the inspect--payload
+
+Example:
+=======
+
+from fastapi import FastAPI, File, UploadFile, Form, Body
+from starlette.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.post("/files")
+async def create_file(file: bytes=File(...),fileb: UploadFile=File(...),token:str=Form(...),hello:str=Body(...)):
+    return {
+        "file_size": len(file),
+        "token": token,
+        "fileb_content_type": fileb.content_type,
+        "hello":hello
+    }
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 19: Handling Errors
+=============================
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from fastapi.exceptions import RequestValidationError
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+app = FastAPI()
+
+items={"foo":"the foo wreshlters"}
+
+@app.get("/items/{item_id}")
+async def read_item(item_id: str):
+    if item_id not in items:
+        #if we not raise the exception like below then without this server response internal serverver error.
+        raise HTTPException(status_code=404,detail="Item not found",headers={"X-Error":"Item not found"})
+    return {"item":items[item_id]}
+
+#we dont need to handle the exception manully like above
+#we can extent the BaseException and create custom exception
+
+class UnicornException(Exception):
+    def __init__(self,name:str):
+        self.name = name
+
+@app.exception_handler(UnicornException)
+async def unicorn_exception_handler(request: Request,exc: UnicornException):
+    return JSONResponse(status_code=408,content={'message':f"opps! {exc.name} did something. There is rainbow"})
+
+@app.get("/unicorns/{names}")
+async def read_unicorns(names:str):
+    if names == "hello":
+        raise UnicornException(name=names)
+    return {"Unicorn_name":names}
+
+#example2
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request,exc):
+    return PlainTextResponse(content=str(exc),status_code=400)
+
+@app.get("/validation_items/{item_id}")
+async def read_validation_item(item_id: int):
+    if item_id ==3:
+        raise HTTPException(status_code=408, detail="Nope I dont like 3")
+    return {"item":items[item_id]}
+
+Example3:
+========
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel
+from starlette import status
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+app = FastAPI()
+
+ #example3: Overriding the Exception Handler
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request,exc):
+    return PlainTextResponse(content=str(exc.details),status_code=exec.status_code)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request,exc: RequestValidationError):
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,content=jsonable_encoder({"detail":exc.errors,"body":exc.body}))
+
+class Item(BaseModel):
+    title: str
+    size: int
+
+@app.post("/items/")
+async def create_item(item:Item):
+    return {"item":item}
+
+
+Example:
+=======
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exception_handlers import http_exception_handler,request_validation_exception_handler
+app = FastAPI()
+
+@app.exception_handler(StarletteHTTPException)
+async def custome_http_exception_handler(request,exc):
+    print(f"OMG An Http Error ! : {repr(exc)}")
+    return await http_exception_handler(request,exc)
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request,exc):
+    print(f"OMG client sends invalid data {exc}")
+    return await request_validation_exception_handler(request,exc)
+
+@app.get("/blah_items/{item_id}")
+async def read_item(item_id: int):
+    if item_id == 3:
+        raise HTTPException(status_code=413,detail="Nope I dont like 3 ")
+    return {"item_id": item_id}
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 20: Path Operation Configuration
+=========================================
+To clasify or segregate the routes in systamatic form, we can use tags["name_tag"], in the decorator.
+Example1:
+========
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from pydantic import BaseModel
+from starlette import status
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description: str
+    price:float
+    tax:float | None=None
+    tag: set[str]=set()
+
+@app.post("/items/",response_model=Item,status_code=status.HTTP_201_CREATED,tags=["items"])
+async def create_item(item:Item):
+    return item
+
+@app.get("/items/",tags=["items"])
+async def read_items():
+    return [{"name":"foo","price":42}]
+
+@app.get("/users/",tags=["users"])
+async def get_users():
+    return [{'username':"FooBay"}]
+
+
+Example2:
+========
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import Enum
+from starlette import status
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description: str
+    price:float
+    tax:float | None=None
+    tag: set[str]=set()
+
+class Tags(Enum):
+    items="items"
+    users="users"
+
+@app.post(
+    "/items/"
+    ,response_model=Item,
+    status_code=status.HTTP_201_CREATED,
+    tags=[Tags.items],
+    summary="Create an item type item",
+    description="Create an item with all the information : name : description : price : tax : and unquie set of tags",
+
+)
+async def create_item(item:Item):
+    return item
+
+@app.get("/items/",tags=[Tags.items])
+async def read_items():
+    return [{"name":"foo","price":42}]
+
+@app.get("/users/",tags=[Tags.users])
+async def get_users():
+    return [{'username':"FooBay"}]
+
+
+Example2:
+=========
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import Enum
+from starlette import status
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description: str
+    price:float
+    tax:float | None=None
+    tag: set[str]=set()
+
+class Tags(Enum):
+    items="items"
+    users="users"
+
+@app.post(
+    "/items/"
+    ,response_model=Item,
+    status_code=status.HTTP_201_CREATED,
+    tags=[Tags.items],
+    response_description="The create Item"
+)
+async def create_item(item:Item):
+    """
+    Create an item with all the information
+    -   **name**: each item must have a name
+    -   **description**: a long description of the item
+    -   **price**:required
+    -   **tax**: if the item doesnt have tas , you can omit it
+    -   **tag**: a set of unique tag strings for this item.
+
+    """
+    return item
+
+@app.get("/items/",tags=[Tags.items])
+async def read_items():
+    return [{"name":"foo","price":42}]
+
+@app.get("/users/",tags=[Tags.users])
+async def get_users():
+    return [{'username':"FooBay"}]
+
+@app.get("/element/",tags=[Tags.items],deprecated=True)
+async def read_element():
+    return [{"item id ":"Foo"}]
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 21: JSON Compatible Encoder and Body Updates
+====================================================
+Usally when we saving data in the database from the post and put request some of the datatype is not
+compitable with database, so we need to type cast accordingly with database, so going manaully changing each
+arrtibute we can use Encoders.
+
+Example1:
+=======
+from datetime import datetime
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+
+app = FastAPI()
+
+fake_db={}
+
+class Item(BaseModel):
+    title:str
+    timestamp:datetime
+    description:str | None=None
+
+@app.put("/items_1/{id}")
+async def update_item(id:str,item:Item):
+    fake_db[id]=item #{'100': Item(title='string', timestamp=datetime.datetime(2023, 12, 31, 17, 40, 34, 176000, tzinfo=TzInfo(UTC)), description='string')}
+    #we can observe the datatime is an python object so we need to canvert to database type
+
+    print(fake_db)
+    return "success"
+
+
+@app.put("/item_2/{id}")
+async def update_item_json(id: str, item: Item):
+    json_compatible_item_data=jsonable_encoder(item)
+    fake_db[id] = json_compatible_item_data #{'hello': {'title': 'string', 'timestamp': '2023-12-31T17:44:32.957000Z', 'description': 'string'}}
+    #now every attribute is converted it into string.
+    print(fake_db)
+    return "success"
+
+
+Example:2
+========
+from datetime import datetime
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name:str | None=None
+    description:str | None=None
+    price:float | None=None
+    tax:float=10.5
+    tag:list[str]=[]
+
+items={
+    "foo":{"name":"Foo","price":50.2},
+    "bar":{"name":"Bar","description":"The barattender","price":62,"tax":20.2},
+    "baz":{"name":"Baz","description":None,"price":50.2,"tax":10.5,"tags":[]}
+
+}
+
+@app.get("/items/{item_id}",response_model=Item)
+async def read_item(item_id:str):
+    return items.get(item_id)
+
+@app.put("/items/{item_id}",response_model=Item)
+async def update_item(item_id:str,item:Item):
+    update_item_encoded=jsonable_encoder(item)
+    items[item_id] = update_item_encoded
+    return update_item_encoded
+
+@app.patch("/items/{item_id}",response_model=Item)
+async def patch_item(item_id:str,item:Item):
+    stored_item_data=items.get(item_id)
+    if stored_item_data is not None:
+        stored_item_model=Item(**stored_item_data)
+    else:
+        stored_item_model=Item()
+    update_data=item.dict(exclude_unset=True)
+    update_item=stored_item_model.copy(update=update_data)
+    items[item_id] = jsonable_encoder(update_item)
+    print(items)
+    return update_item
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
+Session:  22: Dependencies - Intro
 =================================
+
+problem: is redundant code.
+---------------------------
+app = FastAPI()
+@app.get("/items/")
+async def read_items(q: str | None = None, skip: int = 0, limit: int =100):
+    return {"q": q, "skip": skip, "limit":limit}
+
+@app.get("/users/")
+async def read_users(q: str | None = None, skip: int = 0, limit: int =100):
+    return {"q": q, "skip": skip, "limit":limit}
+
+solution: dependency function.
+-----------------------------
+Example:
+from datetime import datetime
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+
+app = FastAPI()
+
+async def common_parameters(q: str | None = None, skip: int = 0, limit: int =100):
+    return {"q": q, "skip": skip, "limit":limit}
+
+@app.get("/items/")
+async def read_items(common: dict = Depends(common_parameters)):
+    return common
+
+@app.get("/users/")
+async def read_users(common: dict = Depends(common_parameters)):
+    return common
+
+ Example3:
+ ========
+ app = FastAPI()
+
+#nested Dependecy function:
+async def hello():
+    return {"message": "Hello World"}
+
+async def common_parameters(q: str | None = None, skip: int = 0, limit: int =100,blah: str=Depends(hello)):
+    return {"q": q, "skip": skip, "limit":limit,"hello":blah}
+
+@app.get("/items/")
+async def read_items(common: dict = Depends(common_parameters)):
+    return common
+
+@app.get("/users/")
+async def read_users(common: dict = Depends(common_parameters)):
+    return common
+
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
+Session: 23: Classes as Dependencies
+====================================
+
+from datetime import datetime
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+app=FastAPI()
+
+# class Cat:
+#     def __init__(self, name: str):
+#         self.name = name
+#
+#
+# fluffy = Cat(name="Mr Fluffy")
+
+fake_items_db=[{"item_name":"Foo"},{"item_name":"Bar"},{"item_name":"Baz"}]
+
+class CommonQueryParams:
+    def __init__(self,q: str | None = None, skip: int = 0, limit: int =100):
+        self.q=q
+        self.skip=skip
+        self.limit=limit
+
+@app.get("/items/") #its something like a pagination
+async def read_items(commons:CommonQueryParams = Depends(CommonQueryParams)):
+    response={}
+    if commons.q:
+        response.update({"q":commons.q})
+    items=fake_items_db[commons.skip:commons.skip+commons.limit]
+    response.update({"items":items})
+    return response
+
+  or we can go as:
+  ----------------
+@app.get("/items/") #its something like a pagination
+async def read_items(commons:CommonQueryParams = Depends()):
+    response={}
+    if commons.q:
+        response.update({"q":commons.q})
+    items=fake_items_db[commons.skip:commons.skip+commons.limit]
+    response.update({"items":items})
+    return response
+
+   or:
+   ===>
+
+   @app.get("/items/") #its something like a pagination
+async def read_items(commons= Depends(CommonQueryParams)):
+    response={}
+    if commons.q:
+        response.update({"q":commons.q})
+    items=fake_items_db[commons.skip:commons.skip+commons.limit]
+    response.update({"items":items})
+    return response
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 24: Sub-Dependencies
+==============================
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends
+
+app=FastAPI()
+
+def query_extractor(q: str | None = None):
+    return q
+
+def query_or_body_extractor(q:str=Depends(query_extractor),last_query:str | None=Body(None)):
+    if not q:
+        return last_query
+    return q
+@app.post("/items")
+async def try_query(query_or_body: str = Depends(query_or_body_extractor)):
+    return {"q_or_body":query_or_body}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session:25: Dependencies in path operation decorators, global dependencies
+==========================================================================
+Dependencies in path operation decorators
+-----------------------------------------
+Example:
+=======
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+
+app=FastAPI()
+
+async def verify_token(x_token: str=Header(...)):
+    if x_token !="fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+async def verify_key(x_key :str = Header()):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+
+@app.get("/items/", dependencies=[Depends(verify_token), Depends(verify_key)])
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]
+
+Example2:global dependencies
+============================
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+
+async def verify_token(x_token: str=Header(...)):
+    if x_token !="fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+async def verify_key(x_key :str = Header()):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+
+app=FastAPI(dependencies=[Depends(verify_token), Depends(verify_key)])
+@app.get("/items/", )
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 26: Security
+======================
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from starlette import status
+
+
+app=FastAPI()
+
+oauth_scheme=OAuth2PasswordBearer(tokenUrl="token")
+
+fake_user_db={
+    "ravi":dict(
+        username="ravi",
+        full_name="Ravi sharma",
+        email="ravi@gmail.com",
+        hassed_password="ravi1234",
+        disable=False),
+    "tom":dict(
+        username="tom",
+        full_name="tom parker",
+        email="tom@gmail.com",
+        hassed_password="fakehashedsecret",
+        disable=True)
+}
+
+def fake_hashed_password(password: str):
+    print(f"fakehashed{password}")
+    return f"fakehashed{password}"
+
+class User(BaseModel):
+    username: str
+    email:str|None=None
+    full_name:str|None=None
+    disabled:bool|None=None
+
+class UserInDB(User):
+    hashed_password:str
+
+def get_user(db,username:str):
+    if username in db:
+        user_dict=db[username]
+        return UserInDB(**user_dict)
+
+def fake_decode_token(token):
+    return get_user(fake_user_db,token)
+
+async def get_curren_user(token: str= Depends(oauth_scheme)):
+    user=fake_decode_token(token)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail = "Invalid Authentication Credentails",headers={"WWW-Authenticate":"Bearer"})
+    return user
+
+async def get_current_active_user(curent_user: User = Depends(get_curren_user)):
+    if curent_user.disabled:
+        raise HTTPException(status_code=400,detail="User disabled")
+    return curent_user
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm =Depends()):
+    user_dict=fake_user_db.get(form_data.username)
+    print("user :", user_dict)
+    if not user_dict:
+        raise HTTPException(400,detail="Invalid username or password")
+    user=UserInDB(**user_dict)
+
+    hashed_password=fake_hashed_password(form_data.password)
+    if not hashed_password == user.hashed_password:
+        raise HTTPException(400, detail="Invalid username or password")
+    return {"access token":user.username,"token_type":"bearer"}
+
+
+@app.get("/user/me")
+async def get_me(current_user:User = Depends(get_current_active_user)):
+    return current_user
+@app.get("/items/")
+async def read_items(token:str=Depends(oauth_scheme)):
+    return {"items":token}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Session: 27: Security with JWT
 =================================
+JWT is a stateless means of authentication.
+its compraise the three parts.
+        Alogorith
+        data
+        signature.
+
+go to jwt.io and check.
+
+first install some packages.
+
+python-jose[cryptography]
+passlib[bcrypt]
+
+in shell scripting:
+    >>> from passlib.context import CryptContext
+    >>> pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    >>> pwd_context.hash('password1234')
+        '$2b$12$0b96TaRJtNk5EeU647VYweWguTOOb6B3XwUkpY0XEnHuZf59O9aTi'
+
+ the generated access token you can paste in the hasdded_password in fake_user_db.
+ as shown below
+
+ note:
+    always stored the hashed password in the DB.
+    dont put the sensitive data in the payload of access token.
+
+ in the swagger give user name as "johndoe" and password as "password1234",
+ you will get the access token and
+ then check in the JWT.io portal by pasting its showing the invalid signature then paste the screte key
+ the access key will ba a valid signature.
+
+Example:
+import datetime
+from datetime import timedelta
+
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from jose import jwt,JWTError
+from pydantic import BaseModel
+from starlette import status
+
+app=FastAPI()
+
+SECRET_KEY = 'thequickbrownfoxjumpsoverthelazydog'
+ALGORITHM = 'HS256'
+ACCESS_TOKEN_EXPIRE_MINUTES =30
+
+fake_user_db=dict(
+    johndoe=dict(
+        username="johndoe",
+        full_name="John Doe",
+        hashed_password="$2b$12$0b96TaRJtNk5EeU647VYweWguTOOb6B3XwUkpY0XEnHuZf59O9aTi",
+        disabled=False
+
+
+    )
+)
+
+class Token(BaseModel):
+    access_token:str
+    token_type:str
+
+class TokenData(BaseModel):
+    username:str | None=None
+
+class User(BaseModel):
+    username:str
+    email:str | None=None
+    full_name:str | None=None
+    disabled:bool=False
+class UserInDB(User):
+    hashed_password:str
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password,hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def get_user(db,username:str):
+    if username in db:
+        user_dict=db[username]
+        return UserInDB(**user_dict)
+
+def authenticate_user(fake_db,username:str,password:str):
+    user=get_user(fake_db,username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta:timedelta | None =None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.now() + expires_delta
+    else:
+        expire = datetime.datetime.now() + timedelta(minutes=15)
+    to_encode.update({"exp":expire})
+    encoded_jwt = jwt.encode(to_encode,SECRET_KEY,algorithm=ALGORITHM)
+    return encoded_jwt
+@app.post("/token",response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm =Depends()):
+    user=authenticate_user(fake_user_db,form_data.username,form_data.password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Incorrect username or password",headers={"WWW-Authenticate": "Bearer"})
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token=create_access_token(
+        data={"sub":user.username},expires_delta=access_token_expires
+    )
+    return {"access_token":access_token,"token_type":"bearer"}
+
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Could not validate credentials",headers={"WWW-Authenticate": "Bearer"})
+    try:
+        payload = jwt.decode(token,SECRET_KEY,algorithms=ALGORITHM)
+        username:str=payload.get("sub")
+        if username is None:
+            raise credential_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credential_exception
+    user=get_user(fake_user_db,username=token_data.username)
+    if user is None:
+        raise credential_exception
+    return user
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400,detail="Inactive user")
+    return current_user
+
+@app.get("/user/me",response_model=User)
+async def get_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+@app.get("/user/me/items")
+async def read_own_items(current_user: User = Depends(get_current_active_user)):
+    return [{"item_id":"foo","owner":current_user.username}]
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
+Session: 28: Middleware and CORS
 =================================
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session: 

@@ -2,6 +2,36 @@ what is the difference betwen async and wait and with this keyword defining the 
 In the path params when we use validation  as Query(...) , what is means?
 what is the difference between doc and redoc in the swagger documentation.
 what is the use of curl
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Index:
+1   :installation of FastAPI
+2   :PATH PARAMETERS
+3   :QUERY PARAMTER
+4   :REQUEST BODY
+5   :Query Parameters and String Validation
+6   :Path Parameters and Numeric Validation
+7   :Body - Multiple Parameters
+8   :Body - Field
+9   :Body - Nested Models
+10  :Declare Request Example Data
+11  :Extra Data Types
+12. :Cookie and Header Parameters
+13. :Response Model
+14. :Extra Models
+15. :Response Status Codes
+16. :Form Fields
+17. :Request Files
+18. :Request Forms and Files
+19. :Handling Errors
+20. :Path Operation Configuration
+21. :JSON Compatible Encoder and Body Updates
+22. :Dependencies - Intro
+23.
+24.
+25.
+
+
+
 
  
 

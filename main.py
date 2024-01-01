@@ -1,151 +1,117 @@
-import uuid
-from fastapi import FastAPI ,Body,Depends,Header,HTTPException
-from pydantic import BaseModel 
-from uuid import UUID 
-from datetime import datetime,time,timedelta
-from database import engine,get_db
-import models,schema
-from sqlalchemy.orm import Session
-from utilities import auth_required
- 
+import datetime
+from datetime import timedelta
+
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from jose import jwt,JWTError
+from pydantic import BaseModel
+from starlette import status
 
 app=FastAPI()
 
-models.Base.metadata.create_all(bind=engine) #it will create the models like django migrate but it not upate or alter
- 
-@app.post('/login')
-def login(user: schema.UserCreate, db: Session = Depends(get_db)):
-    if user.email and user.password:
-        db_user = db.query(models.User).filter(
-            models.User.email == user.email,
-            models.User.password == user.password
-        ).first()
-        if db_user:
-            db_user.token = str(uuid.uuid4())
-            db.commit()
-            db.refresh(db_user)
-            return {'message': 'Login Success', "token": db_user.token}
-        else:
-            raise HTTPException(status_code=401, detail='Invalid Credentials')
-    raise HTTPException(status_code=404, detail="Data not found")
+SECRET_KEY = 'thequickbrownfoxjumpsoverthelazydog'
+ALGORITHM = 'HS256'
+ACCESS_TOKEN_EXPIRE_MINUTES =30
+
+fake_user_db=dict(
+    johndoe=dict(
+        username="johndoe",
+        full_name="John Doe",
+        hashed_password="$2b$12$0b96TaRJtNk5EeU647VYweWguTOOb6B3XwUkpY0XEnHuZf59O9aTi",
+        disabled=False
 
 
-# User CRUD operations
-@app.get('/users')
-@auth_required
-def get_users(db: Session = Depends(get_db), token: str = Header(None)):
-    users = db.query(models.User).all()
-    result = []
-    for user in users:
-        data = {'id': user.id, 'email': user.email, 'is_active': user.is_active,
-                'firstname': user.firstname, 'lastname': user.lastname
-                }
-        result.append(data)
-    return result
+    )
+)
+
+class Token(BaseModel):
+    access_token:str
+    token_type:str
+
+class TokenData(BaseModel):
+    username:str | None=None
+
+class User(BaseModel):
+    username:str
+    email:str | None=None
+    full_name:str | None=None
+    disabled:bool=False
+class UserInDB(User):
+    hashed_password:str
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password,hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def get_user(db,username:str):
+    if username in db:
+        user_dict=db[username]
+        return UserInDB(**user_dict)
+
+def authenticate_user(fake_db,username:str,password:str):
+    user=get_user(fake_db,username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta:timedelta | None =None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.now() + expires_delta
+    else:
+        expire = datetime.datetime.now() + timedelta(minutes=15)
+    to_encode.update({"exp":expire})
+    encoded_jwt = jwt.encode(to_encode,SECRET_KEY,algorithm=ALGORITHM)
+    return encoded_jwt
+@app.post("/token",response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm =Depends()):
+    user=authenticate_user(fake_user_db,form_data.username,form_data.password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Incorrect username or password",headers={"WWW-Authenticate": "Bearer"})
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token=create_access_token(
+        data={"sub":user.username},expires_delta=access_token_expires
+    )
+    return {"access_token":access_token,"token_type":"bearer"}
 
 
-@app.post('/users', response_model=schema.User)
-def create_user(user: schema.UserCreate, db: Session = Depends(get_db)):
-    #import pdb;pdb.set_trace()
-    db_user = models.User(**user.dict())
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
 
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Could not validate credentials",headers={"WWW-Authenticate": "Bearer"})
+    try:
+        payload = jwt.decode(token,SECRET_KEY,algorithms=ALGORITHM)
+        username:str=payload.get("sub")
+        if username is None:
+            raise credential_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credential_exception
+    user=get_user(fake_user_db,username=token_data.username)
+    if user is None:
+        raise credential_exception
+    return user
 
-@app.put('/users/{user_id}', response_model=schema.User)
-def update_user(user: schema.UserUpdate, user_id: int = None, db: Session = Depends(get_db)):
-    if user_id:
-        db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        if not db_user:
-            raise HTTPException(status_code=404, detail='User not found')
-        db_user.firstname = user.firstname
-        db_user.lastname = user.lastname
-        db.commit()
-        db.refresh(db_user)
-        return db_user
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400,detail="Inactive user")
+    return current_user
 
+@app.get("/user/me",response_model=User)
+async def get_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
 
-@app.delete('/users/{user_id}')
-def delete_user(user_id: int = None, db: Session = Depends(get_db)):
-    if user_id:
-        db_user = db.query(models.User).filter(models.User.id == user_id).first()
-        if not db_user:
-            raise HTTPException(status_code=404, detail='User not found')
-        db.delete(db_user)
-        db.commit()
-        return {'message': f'User of id {user_id} deleted successfully'}
+@app.get("/user/me/items")
+async def read_own_items(current_user: User = Depends(get_current_active_user)):
+    return [{"item_id":"foo","owner":current_user.username}]
 
-
-
-
-
-
-# # Account CRUD operations
-# @app.get('/accounts/')
-# async def get_accounts(pagination: Pagination = Depends(),
-#                        db: Session = Depends(get_db),
-#                        query_params: schema.AccountParams = Depends()):
-#     query_params = query_params.__dict__
-#     filter_kwargs = {
-#         key: value for key, value in query_params.items() if value is not None}
-#     if not filter_kwargs:
-#         query = db.query(models.Account)
-#     else:
-#         query = db.query(models.Account).filter_by(**filter_kwargs)
-
-#     return await pagination.paginate(
-#         serializer_class=serializers.AccountSerializer, query=query
-#     )
-
-
-# @app.get('/accounts/user-detail/')
-# def get_accounts(db: Session = Depends(get_db)):
-#     accounts = db.query(models.Account).all()
-#     result = []
-#     for account in accounts:
-#         data = dict(
-#             id=account.id,
-#             accountName=account.account_name,
-#             accountNumber=account.account_number,
-#             userId=account.user_id,
-#             user=dict(email=account.user.email, is_active=account.user.is_active) if account.user else None)
-#         result.append(data)
-#     return result
-
-
-# @app.post('/accounts')
-# def create_account(account: schema.CreateOrUpdateAccount, db: Session = Depends(get_db)):
-#     db_account = models.Account(**account.dict())
-#     db.add(db_account)
-#     db.commit()
-#     db.refresh(db_account)
-#     return db_account
-
-
-# @app.put('/accounts/{account_id}', response_model=schema.Account)
-# def update_account(account: schema.CreateOrUpdateAccount, account_id: int = None, db: Session = Depends(get_db)):
-#     if account_id:
-#         db_account = db.query(models.Account).filter(models.Account.id == account_id).first()
-#         if not db_account:
-#             raise HTTPException(status_code=404, detail='Account details not found')
-#         db_account.account_name = account.account_name
-#         db_account.lastname = account.account_number
-#         db_account.user_id = account.user_id
-#         db.commit()
-#         db.refresh(db_account)
-#         return db_account
-
-
-# @app.delete('/accounts/{account_id}')
-# def delete_account(account_id: int = None, db: Session = Depends(get_db)):
-#     if account_id:
-#         db_account = db.query(models.Account).filter(models.Account.id == account_id).first()
-#         if not db_account:
-#             raise HTTPException(status_code=404, detail='User not found')
-#         db.delete(db_account)
-#         db.commit()
-#         return {'message': f'Account of id {account_id} deleted successfully'}
 
 
