@@ -2,6 +2,17 @@ what is the difference betwen async and wait and with this keyword defining the 
 In the path params when we use validation  as Query(...) , what is means?
 what is the difference between doc and redoc in the swagger documentation.
 what is the use of curl
+
+what are the archetecture of the RestFramework
+what are software architeture
+what are the application archeitecture
+what is GRAPHQL in Api
+what is python profiling?
+what the checks we did in CI and CD?
+SOLID principle in S/W
+what is pydantic
+
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Index:
 1   :installation of FastAPI
