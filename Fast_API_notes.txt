@@ -2405,7 +2405,7 @@ async def read_items(token:str=Depends(oauth_scheme)):
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session: 27: Security with JWT
-=================================
+==============================
 JWT is a stateless means of authentication.
 its compraise the three parts.
         Alogorith
@@ -2423,7 +2423,7 @@ in shell scripting:
     >>> from passlib.context import CryptContext
     >>> pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     >>> pwd_context.hash('password1234')
-        '$2b$12$0b96TaRJtNk5EeU647VYweWguTOOb6B3XwUkpY0XEnHuZf59O9aTi'
+        '$2b$12$yafNlq1pFErm7/1cd9fYgu.nRlmJNHM59PFy7A9Rp4mgRj1TiIDNq'
 
  the generated access token you can paste in the hasdded_password in fake_user_db.
  as shown below
@@ -2557,9 +2557,49 @@ async def read_own_items(current_user: User = Depends(get_current_active_user)):
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session: 28: Middleware and CORS
 =================================
+
+Middleware: with it we can add the functionality to each route.
+CORS or "Cross-Origin Resource Sharing" refers to the situations when a frontend running in a browser has JavaScript code
+that communicates with a backend, and the backend is in a different "origin" than the frontend
+
+basic middlerware example:
+========================
+import datetime
+import time
+from datetime import timedelta
+
+from fastapi import FastAPI,Request
+from starlette.middleware.base import BaseHTTPMiddleware
+
+
+app = FastAPI()
+
+
+class MyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers['X-Process-Time'] = str(process_time)
+        return response
+
+
+
+origins = ["http://localhost:8000","http://localhost:3000"]
+app.add_middleware(MyMiddleware)
+app.add_middleware(CORSMiddleware,allow_origins=origins)
+
+
+@app.get("/blah")
+async def hello_world():
+    return {"hello": "world"}
+
+used to create front-end apps:
+    https://kit.svelte.dev/
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Session: 
-=================================
+Session: 29: SQL Relational Databases
+=====================================
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session: 
 =================================

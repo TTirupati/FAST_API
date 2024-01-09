@@ -13,11 +13,14 @@ SOLID principle in S/W
 what is pydantic
 
 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+SOLID PRINCIPLE: https://www.youtube.com/watch?v=acmPg6aV-Zs&list=PLyLkn_nipSjNVOpdOG-nETxKfgEpbubMQ
+https://www.youtube.com/watch?v=veAb1fSp1Lk : arhecture
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Index:
-1   :installation of FastAPI
+
+1   :Installation of FastAPI
 2   :PATH PARAMETERS
-3   :QUERY PARAMTER
+3   :QUERY PARAMETER
 4   :REQUEST BODY
 5   :Query Parameters and String Validation
 6   :Path Parameters and Numeric Validation
@@ -38,11 +41,10 @@ Index:
 21. :JSON Compatible Encoder and Body Updates
 22. :Dependencies - Intro
 23.
-24.
 25.
 
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
- 
 
