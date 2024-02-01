@@ -1,0 +1,3 @@
+1. what if we make request body as optional?
+2. what is the difference will get if we use Body(embed=True/False)
+3..Bodies of arbitrary dicts

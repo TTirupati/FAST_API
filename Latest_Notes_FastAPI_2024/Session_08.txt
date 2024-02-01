@@ -1,0 +1,99 @@
+Other Return Type Annotations:
+------------------------------
+
+Example-1:Return a Response Directly
+------------------------------------
+
+from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse, RedirectResponse
+
+app = FastAPI()
+
+
+@app.get("/portal")
+async def get_portal(teleport: bool = False) -> Response:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return JSONResponse(content={"message": "Here's your interdimensional portal."})
+
+
+Example-2 Annotate a Response Subclass
+-------------------------------------
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+
+app = FastAPI()
+
+
+@app.get("/teleport")
+async def get_teleport() -> RedirectResponse:
+    return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
+Example-3: Invalid Return Type Annotations
+------------------------------------------
+
+'''
+	this fails because the type annotation is not a Pydantic type and is not just a single Response class or subclass,
+ 	it's a union (any of the two) between a Response and a dict
+'''
+
+
+from fastapi import FastAPI, Response
+from fastapi.responses import RedirectResponse
+
+app = FastAPI()
+
+
+@app.get("/portal")
+async def get_portal(teleport: bool = False) -> Response | dict:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return {"message": "Here's your interdimensional portal."}
+
+Example-4:Disable Response Model
+-------------------------------
+from fastapi import FastAPI, Response
+from fastapi.responses import RedirectResponse
+
+app = FastAPI()
+
+
+@app.get("/portal", response_model=None)
+async def get_portal(teleport: bool = False) -> Response | dict:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return {"message": "Here's your interdimensional portal."}
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Response Status Codes
+----------------------
+	The same way you can specify a response model, you can also declare the HTTP status code used for the response with the parameter status_code in any of the path operations:
+	Like:
+		@app.get("/items/{item_id}", status_code=status.HTTP_200_OK)
+		async def read_item():
+    			pass
+
+Example-1
+---------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+# if we not include the status code by default its show 200 as status code.
+@app.post("/items/", status_code=201)
+async def create_item(name: str):
+    return {"name": name}
+
+
+@app.delete("/items/{pk}", status_code=204)  # 204 is "No-Content" status code.
+async def delete_item(pk: str):
+    print("pk :", pk)
+    return pk
+
+
+@app.get("/items/", status_code=401)
+async def read_item_redirect():
+    return {"hello": "world"}
+
+	

@@ -1,0 +1,184 @@
+Form Fields
+----------
+	When you need to receive form fields instead of JSON, you can use Form
+	To use forms, first install python-multipart.
+	pip install python-multipart
+
+Example-1
+---------
+from fastapi import FastAPI, Response, Body, Form
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    username: str
+    password : str
+
+@app.post("/login/",response_model=Employee)
+async def login(user: Employee):
+    return user
+
+#the below one also send the data in the form of json only
+@app.post("/login_2/")
+async def login_json_body(username: str=Body(...),password:str=Body(...)):
+    return {"user":username,"password":password}
+
+@app.post("/login_3/")
+async def login_formfield(username: str=Form(...),password:str=Form(...)):
+    return {"user":username,"password":password}
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Request Files
+=============
+	You can define files to be uploaded by the client using File
+	receive uploaded files, first install python-multipart	
+		pip install python-multipart
+	This is because uploaded files are sent as "form data".
+
+we can upload file in two ways:
+-------------------------------
+	1. using File():
+			The files will be uploaded as "form data".
+			If you declare the type of your path operation function parameter as bytes, FastAPI will read the file for you and you will receive the contents as bytes.
+			Keep in mind that this means that the whole contents will be stored in memory. This will work well for small files.
+			But there are several cases in which you might benefit from using UploadFile 
+			
+				
+				 
+	2. using UploadFile : 
+			Using UploadFile has several advantages over bytes:
+				You don't have to use File() in the default value of the parameter.
+				It uses a "spooled" file:
+						A file stored in memory up to a maximum size limit, and after passing this limit it will be stored in disk.
+				This means that it will work well for large files like images, videos, large binaries, etc. without consuming all the memory.
+				You can get metadata from the uploaded file.
+				It has a file-like async interface.
+				It exposes an actual Python SpooledTemporaryFile object that you can pass directly to other libraries that expect a file-like object
+
+
+UploadFile:
+==========
+	UploadFile has the following attributes:
+		filename: 
+			A str with the original file name that was uploaded (e.g. myimage.jpg).
+		
+		content_type: 
+			A str with the content type (MIME type / media type) (e.g. image/jpeg).
+		
+		file: 
+			A SpooledTemporaryFile (a file-like object). 
+			This is the actual Python file that you can pass directly to other functions or libraries that expect a "file-like" object.
+			UploadFile has the following async methods. They all call the corresponding file methods underneath (using the internal SpooledTemporaryFile).
+
+		write(data): Writes data (str or bytes) to the file.
+		read(size): Reads size (int) bytes/characters of the file.
+		seek(offset): Goes to the byte position offset (int) in the file.
+			E.g., await myfile.seek(0) would go to the start of the file.
+			This is especially useful if you run await myfile.read() once and then need to read the contents again.
+		close(): Closes the file.
+
+As all these methods are async methods, you need to "await" them.
+
+For example, inside of an async path operation function you can get the contents with:
+contents = await myfile.read()
+If you are inside of a normal def path operation function, you can access the UploadFile.file directly, for example:
+	contents = myfile.file.read()
+
+
+Optional File Upload
+--------------------
+		You can make a file optional by using standard type annotations and setting a default value of None
+
+Example:
+-------
+@app.post("/uploadfile_3/")
+async def create_upload_file_3(file:UploadFile | None= None):
+    if not file:
+        return {"Message ":"No file Send"}
+    else:
+        contents = await file.read()
+        return {"file name":file.filename}
+
+
+UploadFile with Additional Metadata
+-----------------------------------
+	like how we can send the metda for the other classes like Path,Query,Body and Field, the same we can send with File.
+
+@app.post("/files/")
+async def create_file(file: bytes=File(...,description="this is dummpy file sending testing")):  
+    return {"file":file,"file length":len(file)}
+
+
+Multiple File Uploads
+---------------------
+	It's possible to upload several files at the same time.
+	They would be associated to the same "form field" sent using "form data"
+
+
+Example:
+from fastapi import FastAPI,File,UploadFile
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+
+@app.post("/files/")
+async def create_file(files: list[bytes]=File(...)):
+    return {"file size":[len(file) for file in files]}
+
+@app.post("/uploadfile/")
+async def create_upload_file(files: list[UploadFile]): #generally we use this way
+    return {"file name ":[file.filename for file in files]}
+
+
+
+@app.get("/")
+async def main():
+    content = """
+ <body>
+ <form action="/files/" enctype="multipart/form-data" method="post">
+ <input name="files" type="file" multiple>
+ <input type="submit">
+ </form>
+ <form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+ <input name="files" type="file" multiple>
+ <input type="submit">
+ </form>
+ </body>
+     """
+    return HTMLResponse(content=content)
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Request Forms and Files:
+=======================
+	The Body sends the data in the json form but while posting data if we have single form data the entire post
+	request converts into form data you can check in the inspect--payload
+
+requirement:
+	To receive uploaded files and/or form data, first install python-multipart.
+	E.g. pip install python-multipart
+
+
+Example-2
+---------
+from fastapi import FastAPI, File, UploadFile, Form, Body
+from starlette.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.post("/files")
+async def create_file(file: bytes=File(...),fileb: UploadFile=File(...),token:str=Form(...),hello:str=Body(...)):
+    return {
+        "file_size": len(file),
+        "token": token,
+        "fileb_content_type": fileb.content_type,
+        "hello":hello
+    }
+
+	
+ 
+

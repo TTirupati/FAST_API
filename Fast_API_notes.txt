@@ -100,6 +100,12 @@ async def put():
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 PATH PARAMETERS:
 ---------------
+path parameters:
+		path params are passing the URL
+
+three dots(...): 
+		Ellipsis can also be used as a default argument value. 
+		Especially when you want to distinguish between not passing in value and passing in None
 
 Example: main.py:
 
@@ -309,6 +315,7 @@ async def get_item(item_id:str,q: str | None=None,short:bool=False):
 
 
 #Single Path Param and single Query Param.
+
 from typing import Optional
 from fastapi import FastAPI
 
@@ -385,6 +392,10 @@ async def get_user_item(user_id:int , item_id:str , sample_required_query:str, q
             {"description ": "this is my world or programming"}
         )
     return item
+	
+Note:
+	Typically the way you decide this is If you want to search/find a specific resource, 
+	you should use Path parameter whereas if you want to sort or filter items, then you should use query parameter
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session:4: REQUEST BODY:
@@ -699,6 +710,8 @@ async def update_item(
         results.update({"importance":importance})
 
     return results
+	
+
 response:
 {
   "item": {
@@ -1112,7 +1125,7 @@ async def update_item(item_id:int,item:Item):
     return results
 
 
-2.Way we can achive it. not a right way:
+ 
 By deafult we can get this example if we do this way:
 {
   "name": "Foo",
@@ -1737,7 +1750,7 @@ from fastapi import FastAPI, File, UploadFile
 app = FastAPI()
 
 @app.post("/files/")
-async def create_file(file: bytes=File(...)): #this will ask to updaliad the file and read the content and send as reponse back
+async def create_file(file: bytes=File(...)): #this will ask to upload the file and read the content and send as reponse back
     return {"file":file,"file length":len(file)}
 
 @app.post("/uploadfile/")
@@ -1834,6 +1847,7 @@ async def create_file(file: bytes=File(...),fileb: UploadFile=File(...),token:st
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Session: 19: Handling Errors
 =============================
+
 from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException
 from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
@@ -1866,6 +1880,8 @@ async def read_unicorns(names:str):
     if names == "hello":
         raise UnicornException(name=names)
     return {"Unicorn_name":names}
+	
+	
 
 #example2
 @app.exception_handler(RequestValidationError)
@@ -2275,6 +2291,7 @@ def query_or_body_extractor(q:str=Depends(query_extractor),last_query:str | None
     if not q:
         return last_query
     return q
+	
 @app.post("/items")
 async def try_query(query_or_body: str = Depends(query_or_body_extractor)):
     return {"q_or_body":query_or_body}

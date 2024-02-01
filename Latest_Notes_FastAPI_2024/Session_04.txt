@@ -1,0 +1,590 @@
+Body - Nested Models
+---------------------
+_____________________________________________________________________________________________________________________________________________________________________________________
+
+CONCEPT:
+	1.Tags in the models
+	2.Nested List
+	3.regular expression in Field(), in the nested models.
+	4.Extra data types in Pydantic like HttpUrl
+	5.nested models using another model images examples
+	6.sending nested images using list of models
+	7.deeply nested models: project example
+	8.Bodies of pure list
+	9.Bodies of arbitrary dicts
+
+_____________________________________________________________________________________________________________________________________________________________________________________
+TAGS:
+   DEF:
+	One the way we can nest the body by using the tag:list
+
+Example:
+-------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float=Field(0, ge=100, le=10000)
+    designation:str=Field(None, description="Designation of the employee")
+    date_of_birth:Optional[date]|None=None
+    tag : list=[]
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+Response:
+{
+  "empid": 1010,
+  "employee details": {
+    "empid": 0,
+    "ename": "string",
+    "salary": 100,
+    "designation": "string",
+    "date_of_birth": "2024-01-26",
+    "tag": [
+      100,
+      200,
+      300
+    ]
+  }
+}
+
+
+Example2:
+--------
+from typing import Optional
+from fastapi import FastAPI,Query,Path,Body
+from pydantic import BaseModel,Field
+from typing import List #if we are using before version python 3.10 the we need to import
+app=FastAPI()
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str]
+
+@app.put("/items/{item_id}")
+async def update_item(item_id:int,item:Item):
+    results={"item id ": item_id,"item":item}
+    return results
+
+requesting body
+
+{
+  "name": "string",
+  "description": "string",
+  "price": 0,
+  "tax": 0,
+  "tag": [
+    "hello","world","tom"
+
+  ]
+}
+
+response body:
+{
+  "item id ": 123,
+  "item": {
+    "name": "string",
+    "description": "string",
+    "price": 0,
+    "tax": 0,
+    "tag": [
+      "hello",
+      "world",
+      "tom"
+    ]
+  }
+}
+
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:list=[str] #so we can pass the any type of list from here like int,float,bool
+
+suppose if we want to take 
+         tag:list=set()-->it wont behave like set again it behave like a list only
+
+but we change like this then only it will behave like 
+class Item(BaseModel):
+    name:str
+    description:str|None=None
+    price:float
+    tax:float|None=None
+    tag:set[str]=set()
+
+typing should be match on the both sides.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Nested Models:
+=============
+	Each attribute of a Pydantic model has a type.
+	But that type can itself be another Pydantic model.
+	So, you can declare deeply nested JSON "objects" with specific attribute names, types and validations
+
+EXAMPLE:
+-------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str = Field(..., description="please provide an image name for the employee")
+    image_url: str = Field(..., description="upload the image")
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str=Field(None, description="Designation of the employee")
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_image: Image
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+'''
+	
+Response body
+Download
+{
+  "empid": 101011,
+  "employee details": {
+    "empid": 0,
+    "ename": "string",
+    "salary": 0,
+    "designation": "string",
+    "date_of_birth": "2024-01-26",
+    "tag": [
+      "string"
+    ],
+    "emp_image": {
+      "image_name": "string",
+      "image_url": "string"
+    }
+  }
+}
+
+'''
+
+EXAMPLE-2
+---------
+we can refer: https://ihateregex.io/?q=url for regular expression
+
+EXAMPLE-1
+---------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str
+    image_url: str = Field(..., pattern=r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)')
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_image: Image
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+'''
+	
+Request Body:
+-----------
+{
+  "empid": 0,
+  "ename": "string",
+  "salary": 0,
+  "designation": "string",
+  "date_of_birth": "2024-01-26",
+  "tag": [
+    "string"
+  ],
+  "emp_image": {
+    "image_name": "string",
+    "image_url": "https://github.com/geongeorge/i-hate-regex"
+  }
+}
+
+Response body
+Download
+{
+  "empid": 10101,
+  "employee details": {
+    "empid": 0,
+    "ename": "string",
+    "salary": 0,
+    "designation": "string",
+    "date_of_birth": "2024-01-26",
+    "tag": [
+      "string"
+    ],
+    "emp_image": {
+      "image_name": "string",
+      "image_url": "https://github.com/geongeorge/i-hate-regex"
+    }
+  }
+}
+
+'''
+
+And we can check all Field Types in Pydantic site:-
+--------------------------------------------------
+Example-2: second way we can accomplish this example:
+
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel, HttpUrl
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str
+    image_url: HttpUrl
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_image: Image
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+'''
+	
+Request Body:
+-----------
+{
+  "empid": 0,
+  "ename": "string",
+  "salary": 0,
+  "designation": "string",
+  "date_of_birth": "2024-01-26",
+  "tag": [
+    "string"
+  ],
+  "emp_image": {
+    "image_name": "string",
+    "image_url": "https://example.com/"
+  }
+}
+
+Response body
+ 
+{
+  "empid": 10101,
+  "employee details": {
+    "empid": 0,
+    "ename": "string",
+    "salary": 0,
+    "designation": "string",
+    "date_of_birth": "2024-01-26",
+    "tag": [
+      "string"
+    ],
+    "emp_image": {
+      "image_name": "string",
+      "image_url": "https://example.com/"
+    }
+  }
+}
+
+'''
+
+suppose if we want to send list of images then :
+------------------------------------------------
+EXAMPLE-3:
+---------
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel, HttpUrl
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str
+    image_url: HttpUrl
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_images: list[Image]
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+'''
+	
+Request Body:
+-----------
+{
+  "empid": 0,
+  "ename": "string",
+  "salary": 0,
+  "designation": "string",
+  "date_of_birth": "2024-01-26",
+  "tag": [
+    "string"
+  ],
+  "emp_images": [
+    {
+      "image_name": "image1",
+      "image_url": "https://example.com/"
+    },
+    {
+      "image_name": "image2",
+      "image_url": "https://example.com/"
+    }
+
+  ]
+
+
+Response body
+ 
+{
+  "empid": 1010,
+  "employee details": {
+    "empid": 0,
+    "ename": "string",
+    "salary": 0,
+    "designation": "string",
+    "date_of_birth": "2024-01-26",
+    "tag": [
+      "string"
+    ],
+    "emp_images": [
+      {
+        "image_name": "image1",
+        "image_url": "https://example.com/"
+      },
+      {
+        "image_name": "image2",
+        "image_url": "https://example.com/"
+      }
+    ]
+  }
+}
+
+'''
+
+Deeply nested models
+====================
+	Lets Nest Models within the Models Example:
+
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel, HttpUrl
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str
+    image_url: HttpUrl
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_images: list[Image]
+
+class Project(BaseModel):
+    pid : int
+    project_name: str
+    employees: list[Employee]
+
+
+@app.post("/project/")
+async def create_projects(project: Project):
+    return project
+
+'''
+	
+Request Body:
+-----------
+{
+  "pid": 0,
+  "project_name": "string",
+  "employees": [
+    {
+      "empid": 0,
+      "ename": "string",
+      "salary": 0,
+      "designation": "string",
+      "date_of_birth": "2024-01-26",
+      "tag": [
+        "string"
+      ],
+      "emp_images": [
+        {
+          "image_name": "string",
+          "image_url": "https://example.com/"
+        }
+      ]
+    }
+  ]
+}
+
+
+Response body
+ {
+  "pid": 0,
+  "project_name": "string",
+  "employees": [
+    {
+      "empid": 0,
+      "ename": "string",
+      "salary": 0,
+      "designation": "string",
+      "date_of_birth": "2024-01-26",
+      "tag": [
+        "string"
+      ],
+      "emp_images": [
+        {
+          "image_name": "string",
+          "image_url": "https://example.com/"
+        }
+      ]
+    }
+  ]
+}
+ 
+
+'''
+
+
+Bodies of pure lists
+---------------------
+	If the top level value of the JSON body you expect is a JSON array (a Python list), 
+	you can declare the type in the parameter of the function, the same as in Pydantic models
+Example-1:
+---------
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Body
+from pydantic import BaseModel, HttpUrl
+
+app = FastAPI()
+class Image(BaseModel):
+    image_name: str
+    image_url: HttpUrl
+
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float
+    designation:str
+    date_of_birth:Optional[date]|None=None
+    tag : list=[str]
+    emp_images: list[Image]
+
+class Project(BaseModel):
+    pid : int
+    project_name: str
+    employees: list[Employee]
+
+
+@app.post("/project/")
+async def create_projects(project: list[Project]):
+    return project
+
+@app.post("/images/multiple")
+async def create_multiple_images(images:list[Image]=Body(...,embed=True)):
+    return images
+
+
+'''
+	
+Request Body:
+-----------
+{
+  "images": [
+    {
+      "image_name": "string",
+      "image_url": "https://example.com/"
+    }
+  ]
+}
+
+
+Response body
+ [
+  {
+    "image_name": "string",
+    "image_url": "https://example.com/"
+  }
+]
+
+'''
+
+Bodies of arbitrary dicts
+-------------------------
+	You can also declare a body as a dict with keys of some type and values of some other type.
+	This way, you don't have to know beforehand what the valid field/attribute names are (as would be the case with Pydantic models).
+
+
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.post("/sample_dict")
+async def create_dict(sample_dict:dict[int,float]):
+    return sample_dict
+
+

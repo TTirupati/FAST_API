@@ -1,0 +1,205 @@
+___________________________________________________________________________________________________________________________________________________________________________
+concept:
+	1.Request Body: Created the Request Body model using pydantic BaseModel
+	2.Request body + path parameters + Query Params
+	3.Mix Path, Query and body parameters
+	4.Multiple body parameters
+	5.Embed a single body parameter
+	6.Body - Fields
+___________________________________________________________________________________________________________________________________________________________________________
+
+Request Body
+============
+	When you need to send data from a client (let's say, a browser) to your API, you send it as a request body.
+	A request body is data sent by the client to your API. A response body is the data your API sends to the client.
+	Your API almost always has to send a response body. But clients don't necessarily need to send request bodies all the time.
+
+To declare a request body, you use Pydantic models with all their power and benefits.
+
+points to be noted.
+------------------
+	To send data, you should use one of: POST (the more common), PUT, DELETE or PATCH.
+	Sending a body with a GET request has an undefined behavior in the specifications, nevertheless, it is supported by FastAPI, only for very complex/extreme use cases
+
+Created the Request Body model using pydantic BaseModel:
+--------------------------------------------------------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query
+from pydantic import BaseModel
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float|None=None
+    designation:Optional[str]|None=None
+    date_of_birth:Optional[date]|None=None
+
+@app.post("/employee")
+async def create_employee(employee:Employee):
+    return employee.model_dump()
+
+@app.post("/employee_age")
+async def create_employee_with_age(employee:Employee):
+    record=employee.model_dump()
+    if employee.date_of_birth:
+        age=date.today().year-employee.date_of_birth.year
+        print("age",age)
+        record.update({"age":age})
+    return record
+
+
+Request body + path parameters + Query Params
+----------------------------------------------
+	we can declare path parameters and request body at the same time
+	FastAPI will recognize that the function parameters that match path parameters should be taken from the path, 
+	and that function parameters that are declared to be Pydantic models should be taken from the request body and also query params.
+
+Example:
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query
+from pydantic import BaseModel
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float|None=None
+    designation:Optional[str]|None=None
+    date_of_birth:Optional[date]|None=None
+
+@app.put("/employee_pathparam/{empid}")
+async def update_employee(empid:int, employee:Employee):
+    return {"path params empid":empid,"employee":employee.model_dump()}
+
+
+@app.put("/employee_queryparam/{empid}")
+async def update_employee(empid:int, employee:Employee,query_param:str=Query(None,description="this is query param and its optional")):
+    return {"path params empid":empid,"employee":employee.model_dump(),'query_param':query_param}
+
+
+Mix Path, Query and body parameters
+-----------------------------------
+	First, of course, you can mix Path, Query and request body parameter declarations freely and FastAPI will know what to do.
+	And you can also declare body parameters as optional, by setting the default to None:
+
+
+Example:
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query
+from pydantic import BaseModel
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float|None=None
+    designation:Optional[str]|None=None
+    date_of_birth:Optional[date]|None=None
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid:int, employee:Employee|None=None,query_param:str=Query(None,description="this is query param and its optional")):
+    result={"path params empid":empid}
+    if employee:
+        result.update({"employee":employee.model_dump()})
+    if query_param:
+        result.update({'query_param':query_param})
+
+    return result
+
+
+Multiple body parameters
+-----------------------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float|None=None
+    designation:Optional[str]|None=None
+    date_of_birth:Optional[date]|None=None
+
+class Dependent(BaseModel):
+    dependent_id: int
+    dependent_name: str | None=None
+    relationship : str | None=None
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee,dependent: Dependent):
+    result={"empid":empid,"employee details":employee,"dependent details":dependent}
+    return result
+
+
+Embed a single body parameter
+-----------------------------
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float|None=None
+    designation:Optional[str]|None=None
+    date_of_birth:Optional[date]|None=None
+
+class Dependent(BaseModel):
+    dependent_id: int
+    dependent_name: str | None=None
+    relationship : str | None=None
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(*,empid: int, employee: Employee=Body(...,embed=True),dependent: Dependent):
+    result={"empid":empid,"employee details":employee,"dependent details":dependent}
+    return result
+
+
+Body - Fields
+-------------
+	 The same way you can declare additional validation and metadata in path operation function parameters with Query,
+	 Path and Body, you can declare validation and metadata inside of Pydantic models using Pydantic's Field
+
+
+Example:
+import datetime
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+class Employee(BaseModel):
+    empid: int
+    ename : str
+    salary: float=Field(0, ge=100, le=10000)
+    designation:str=Field(None, description="Designation of the employee")
+    date_of_birth:Optional[date]|None=None
+
+
+@app.put("/employee_bodyNone/{empid}")
+async def update_employee(empid: int, employee: Employee=Body(...,embed=True)):
+    result={"empid":empid,"employee details":employee}
+    return result
+
+
+

@@ -1,0 +1,354 @@
+Concepts:
+	 1. response model
+	 2."Employee Example" including and excluding attribute of the response model
+	 3."password Example" including and excluding attribute of the response model.
+
+Response Model - Return Type
+----------------------------
+	In the swagger we can see, schema is a string if we not set response model.
+	You can use the response_model parameter in any of the path operations:
+		@app.get()
+		@app.post()
+		@app.put()
+		@app.delete()
+		etc.
+
+We can use response model to specify the response as shown in the given example:
+---------------------------------------------------------------------------------
+Example-1
+---------
+from fastapi import FastAPI, Body, Cookie, Header
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary : float | None=None
+    designation : str | None=None
+
+@app.post("/employee",response_model=Employee)
+async def create_employee(employee:Employee):
+    return employee
+
+
+Example-2
+-------
+from datetime import datetime, time, timedelta
+from uuid import UUID
+
+from fastapi import FastAPI, Body, Cookie, Header
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+class UserIn(BaseModel):
+    username : str
+    password : str
+    email    : EmailStr
+    full_name :str | None =None
+
+@app.post("/user/",response_model=UserIn)
+async def create_user(user: UserIn):
+    return user
+
+Response Body:
+-------------
+{
+  "username": "ravisharama",
+  "password": "Ravi@1234",
+  "email": "user@example.com",
+  "full_name": "string"
+}
+
+
+
+
+In the above Example-2, actually "password" is visible in the response body, that is not at all good so what we can do is
+
+Now, we can observe, in the response_model=UserOut, where in UserOut doest not have password,
+where in query params we can models as UserIn, because we need to feed the data inclulding password.
+
+Example-3
+---------
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+
+app = FastAPI()
+
+
+class UserBase(BaseModel):
+    username : str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserIn(UserBase):
+    password : str
+
+class UserOut(UserBase):
+    pass
+
+
+@app.post("/user/",response_model=UserOut)
+async def create_user(user: UserIn):
+    return user
+
+
+Let see,how we can exlude and include elements in response_model:
+----------------------------------------------------------------
+1.response_model_exclude_unset=True: 
+		if we use this args,we will not get any default values which we set below in items dictionary a company_name in the response body.
+
+2.response_model_include:
+			it allows us to select only certain sections of the complete response model.
+			this is extremely useful where i can just reuse the same model in different APIs and return only the requested data.
+
+3.response_model_exclude: its opposite of include.
+
+4. Literal["item2","item2","item2"...]
+
+
+Example:1
+-------
+
+from typing import Literal
+
+from fastapi import FastAPI
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+employee_database = {"1010": {"ename": "John", "salary": 50000, "designation": "SSE"},
+                     "1020": {"ename": "Ravi", "salary": 60000, "designation": "SE"},
+                     "1030": {"ename": "Ram", "salary": 90000, "designation": "Lead"}}
+
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary: int | None = None
+    designation: str | None = None
+    company_name: str = "CTS"
+
+
+# remove the default valued attribute of the Employee model from the response body
+@app.get("/employees/{empid}", response_model=Employee, response_model_exclude_unset=True)
+async def get_employee(empid: Literal["1010", "1020", "1030"]):
+    result = employee_database[empid]
+    result.update({"empid": empid})
+    return result
+
+
+# include the specific attributes from the response model
+@app.get("/employees_include/{empid}", response_model=Employee, response_model_include={"ename","salary"})
+async def get_employee_ename(empid: Literal["1010", "1020", "1030"]):
+    result = employee_database[empid]
+    result.update({"empid": empid})
+    return result
+
+@app.get("/employees_exclude/{empid}", response_model=Employee, response_model_exclude={"ename","salary"})
+async def get_employee_ename(empid: Literal["1010", "1020", "1030"]):
+    result = employee_database[empid]
+    result.update({"empid": empid})
+    return result
+
+
+In the given example we are includng some items and excluding the password from the response model
+--------------------------------------------------------------------------------------------------
+Example-3
+
+from fastapi import FastAPI, Body,Path,Cookie,Header
+from pydantic import BaseModel,Field,HttpUrl,EmailStr
+from typing import Literal
+app = FastAPI()
+
+
+class UserBase(BaseModel):
+    username : str
+    email: EmailStr
+    password : str| None = None
+    full_name: str | None = None
+
+user={
+    "foo":{"username":"Foo","email":"foo@gmail.com"},
+    "bar":{"username":"Bar","email":"foo@gmail.com","password":"bar1234","full_name":'Attender'},
+    "baz":{"username":"Baz","email":"foo@gmail.com","password":"baz123"}
+}
+@app.get("/user/{user_id}",response_model=UserBase)
+async def get(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+ 
+@app.get("/user/{user_id}/name",response_model=UserBase,response_model_include={"username","email"})
+async def get_name(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+
+@app.get("/user/{user_id}/public",response_model=UserBase,response_model_exclude={"password"})
+async def get_name_public(user_id:Literal["foo","bar","baz"]):
+    return user[user_id]
+
+
+Response body Return type:
+--------------------------
+from typing import Literal
+
+from fastapi import FastAPI
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary: int | None = None
+    designation: str | None = None
+
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
+
+@app.post("/employee/")
+async def create_emp(emp: Employee) -> Employee:
+    return emp
+
+@app.get("/employee_list/")
+async def read_all_employees() -> list[Employee]:
+    return [
+        Employee(empdi=1010,ename="John",salary=50000,designation="SSE"),
+
+    ]
+
+@app.get("/items/")
+async def read_items() -> list[Item]:
+    return [
+        Item(name="Portal Gun", price=42.0),
+        Item(name="Plumbus", price=32.0),
+    ]
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Extra Models
+=============
+	it will be common to have more than one related model.
+	This is especially the case for user models, because:
+		The input model needs to be able to have a password.
+		The output model should not have a password.
+		The database model would probably need to have a hashed password
+
+Example-1
+from fastapi import FastAPI
+from pydantic import BaseModel,EmailStr
+
+app = FastAPI()
+
+class EmployeeIn(BaseModel):
+    empid:int
+    name : str
+    email : EmailStr
+    password : str
+
+class EmployeeOut(BaseModel):
+    empid : int
+    name: str
+    email: EmailStr
+
+class EmployeeDB(BaseModel):
+    empid :int
+    name: str
+    email: EmailStr
+    hashed_password: str
+
+def fake_password_hasher(raw_password: str):
+    return "supersecret" + raw_password
+
+def fake_save_user(user_in: EmployeeIn):
+    hashed_password = fake_password_hasher(user_in.password)
+    user_in_db = EmployeeDB(**user_in.model_dump(), hashed_password=hashed_password)
+    print("User saved! ..not really")
+    return user_in_db
+
+@app.post("/user/",response_model=EmployeeDB)
+async def create_user(user_in:EmployeeIn):
+    user_saved=fake_save_user(user_in) #saving the like in a database
+    return user_saved
+
+
+Now lets remove some of the duplication using AsbractBase class.
+----------------------------------------------------------------
+Example-2
+--------
+from fastapi import FastAPI
+from pydantic import BaseModel,EmailStr
+
+app = FastAPI()
+
+class EmployeeBase(BaseModel):
+    empid:int
+    name : str
+    email : EmailStr
+
+class EmployeeIn(EmployeeBase):
+    password: str
+
+class EmployeeOut(EmployeeBase):
+    pass
+
+class EmployeeDB(EmployeeBase):
+     hashed_password: str
+
+def fake_password_hasher(raw_password: str):
+    return "supersecret" + raw_password
+
+def fake_save_user(user_in: EmployeeIn):
+    hashed_password = fake_password_hasher(user_in.password)
+    user_in_db = EmployeeDB(**user_in.model_dump(), hashed_password=hashed_password)
+    print("User saved! ..not really")
+    return user_in_db
+
+@app.post("/user/",response_model=EmployeeDB)
+async def create_user(user_in:EmployeeIn):
+    user_saved=fake_save_user(user_in) #saving the like in a database
+    return user_saved
+
+
+Union or anyOf
+--------------
+	You can declare a response to be the Union of two types, that means, that the response would be any of the two.
+	
+Example:
+--------
+
+from typing import Union
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class BaseItem(BaseModel):
+    description: str
+    type: str
+
+class CarItem(BaseItem):
+    type: str = "car"
+
+class PlaneItem(BaseItem):
+    type: str = "plane"
+    size: int
+
+
+items = {
+    "item1": {"description": "All my friends drive a low rider", "type": "car"},
+    "item2": {
+        "description": "Music is my aeroplane, it's my aeroplane",
+        "type": "plane",
+        "size": 5,
+    },
+}
+
+@app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem])
+async def read_item(item_id: str):
+    return items[item_id]
+

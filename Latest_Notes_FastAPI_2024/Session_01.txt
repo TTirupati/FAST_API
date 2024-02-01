@@ -1,0 +1,128 @@
+'''
+    Python has support for optional "type hints" (also called "type annotations").
+    These "type hints" or annotations are a special syntax that allow declaring the type of a variable.
+    By declaring types for your variables, editors and tools can give you better support.
+
+without Type hints:
+------------------
+def get_full_name(first_name, last_name):
+    full_name = first_name.title() + " " + last_name.title()
+    return full_name
+
+print(get_full_name("john", "doe"))
+
+Example of Type hints:
+---------------------
+def get_full_name(first_name: str, last_name: str):
+    full_name = first_name.title() + " " + last_name.title()
+    return full_name
+
+print(get_full_name("John", "Doe"))
+
+Declaring types:
+        You just saw the main place to declare type hints. As function parameters.
+
+def sample(a:int,b:float):
+    return {"a :":a,"b: ":b}
+
+def greeting(name: int) -> int:
+    return 'Hello ' + name
+
+
+#That means: "the variable items is a list, and each of the items in this list is a str".
+def process_items(items: list[str]):
+    for item in items:
+        print(item)
+
+#The variable items_t is a tuple with 3 items, an int, another int, and a str.
+#The variable items_s is a set, and each of its items is of type bytes.
+def process_items(items_t: tuple[int, int, str], items_s: set[bytes]):
+    return items_t, items_s
+
+#The keys of this dict are of type str (let's say, the name of each item).
+#The values of this dict are of type float (let's say, the price of each item
+def process_items(prices: dict[str, float]):
+    for item_name, item_price in prices.items():
+        print(item_name)
+        print(item_price)
+
+#In Python 3.10 there's also a new syntax where you can put the possible types separated by a vertical bar (|).
+def process_item(item: int | str):
+    print(item)
+
+#In Python 3.6 and above (including Python 3.10) you can declare it by importing and using Optional from the typing module.
+from typing import Optional
+def say_hi(name: Optional[str] = None):
+    if name is not None:
+        print(f"Hey {name}!")
+    else:
+        print("Hello World")
+
+
+def say_hi(name: str | None = None):
+    if name is not None:
+        print(f"Hey {name}!")
+    else:
+        print("Hello World")
+
+#This also means that in Python 3.10, you can use Something | None:
+
+print(sample("John","Doe"))
+print(greeting("John"))
+
+
+Generic types:
+------------
+in 3.10:
+You can use the same builtin types as generics (with square brackets and types inside):
+
+list
+tuple
+set
+dict
+
+And the same as with Python 3.8, from the typing module:
+
+Union
+Optional (the same as with Python 3.8)
+
+Classes as types:
+----------------
+class Person:
+    def __init__(self, name: str):
+        self.name = name
+
+
+def get_person_name(one_person: Person):
+    return one_person.name
+    
+Pandantic Models:
+----------------
+    it is a Python library to perform data validation.
+    we can declare the "shape" of the data as classes with attributes & And each attribute has a type
+    FastAPI is all based on Pydanti
+
+from datetime import datetime
+
+from pydantic import BaseModel
+
+
+class User(BaseModel):
+    id: int
+    name: str = "John Doe"
+    signup_ts: datetime | None = None
+    friends: list[int] = []
+
+
+external_data = {
+    "id": "123",
+    "signup_ts": "2017-06-01 12:22",
+    "friends": [1, "2", b"3"],
+}
+user = User(**external_data)
+print(user)
+# > User id=123 name='John Doe' signup_ts=datetime.datetime(2017, 6, 1, 12, 22) friends=[1, 2, 3]
+print(user.id)
+# > 123
+'''
+

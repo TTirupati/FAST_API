@@ -1,0 +1,227 @@
+Declare Request Example Data
+----------------------------
+	You can declare examples of the data your app can receive 
+		we can do this by following ways:
+			1.Extra JSON Schema data
+			2.Adding default values for each attribute in models
+			3.Field additional arguments
+			4.Body with examples arguments
+			5.Body with multiple examples arguments[]openapi
+			6.Body() with examples=[] arguments
+
+
+Extra JSON Schema data in Pydantic models:
+------------------------------------------
+	You can declare examples for a Pydantic model that will be added to the generated JSON Schema
+	this approach is not a recommed way.
+
+Example:
+-------
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary: float|None=None
+    designation: str|None=None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "eid":1010,
+                    "ename":"John william",
+                    "salary":20000,
+                    "designation":"Senior Software Engineering"
+                }
+            ]
+        }
+    }
+
+
+@app.post("/employee")
+async def create_employee(employee:Employee):
+    return employee
+
+we can achieve the same thing we we add the default values in the models of each attribute.
+-------------------------------------------------------------------------------------------
+Example-2
+---------
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int= 1010
+    ename: str ="Ravi sharama"
+    salary: float|None="50000"
+    designation: str|None="sse"
+
+@app.post("/employee")
+async def create_employee(employee:Employee):
+    return employee
+
+
+
+Field additional arguments
+--------------------------
+
+Example-3:
+---------
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int= Field(...,examples=[1010])
+    ename: str =Field(...,examples=["Ravi sharma"])
+    salary: float|None=Field(...,examples=[50000])
+    designation: str|None=Field(...,examples=["Senior Engineer"])
+
+@app.post("/employee")
+async def create_employee(employee:Employee):
+    return employee
+
+
+Body with examples argumenst:
+----------------------------- 
+
+Example-4:
+----------
+from fastapi import FastAPI, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary: float|None=None
+    designation: str|None=None
+
+@app.post("/employee")
+async def create_employee(
+        employee:Employee=Body(...,example={
+                    "eid":1010,
+                    "ename":"John william",
+                    "salary":20000,
+                    "designation":"Senior Software Engineering"
+        })):
+    return employee
+
+
+Body with multiple examples arguments
+-------------------------------------
+Example-5.[NOT WQRKING]*************
+
+from fastapi import FastAPI, Body
+from pydantic import BaseModel, Field
+
+app = FastAPI()
+
+class Employee(BaseModel):
+    empid: int
+    ename: str
+    salary: float|None=None
+    designation: str|None=None
+
+@app.post("/employee")
+async def create_employee(
+        employee:Employee=Body(...,openapi_examples={
+                "normal":{
+                    "summary":"An normal employee Example",
+                    "description":"A normal employee example works correctly",
+                    "value":{
+                    "eid":1010,
+                    "ename":"John william",
+                    "salary":20000,
+                    "designation":"Senior Software Engineering"
+                    }
+                },
+                "converted":{
+                "summary":"An Example with converted data",
+                "description":"FastAPI can converts price string to actual number automatically",
+                "value":{"eid":1010,
+                    "ename":"John william",},
+                },
+                "Invalid":{
+                "Summary":"Invalid data is rejected with an error",
+                "description":"hello you tubers",
+                "value":{"eid":1010,"ename":"John william", },
+            },
+
+        })):
+    return employee
+
+
+
+Body() with examples=[] arguments
+---------------------------------
+Example-6:
+---------
+	When you do this, the examples will be part of the internal JSON Schema for that body data.
+	Nevertheless, at the time of writing this, Swagger UI, the tool in charge of showing the docs UI, 
+	doesn't support showing multiple examples for the data in JSON Schema. But read below for a workaround
+
+	The shape of this OpenAPI-specific field examples is a dict with multiple examples (instead of a list), each with extra information that will be added to OpenAPI too
+
+Using the openapi_examples Parameter
+		You can declare the OpenAPI-specific examples in FastAPI with the parameter openapi_examples for:
+			Path()
+			Query()
+			Header()
+			Cookie()
+			Body()
+			Form()
+			File()
+
+
+from typing import Annotated
+from fastapi import Body, FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id: int,
+    item: Annotated[
+        Item,
+        Body(
+            examples=[
+                {
+                    "name": "Foo",
+                    "description": "A very nice Item",
+                    "price": 35.4,
+                    "tax": 3.2,
+                },
+                {
+                    "name": "Bar",
+                    "price": "35.4",
+                },
+                {
+                    "name": "Baz",
+                    "price": "thirty five point four",
+                },
+            ],
+        ),
+    ],
+):
+    results = {"item_id": item_id, "item": item}
+    return results
+
+

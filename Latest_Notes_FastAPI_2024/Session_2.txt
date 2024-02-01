@@ -1,0 +1,214 @@
+_____________________________________________________________________________________________________________________________________________________________________________________
+concept:
+	1.Creating an Sample routes in FastAPI:
+	2.Path Paramters:
+		Single params Example
+		multiple param example
+		Add the metadata for the path param and validation
+	3.Query Params
+		single amd muliple Query params
+		required and optional Query params
+		Addding the metadata and validation to the query params using Query class
+	4.CRUD Operation for static or dumpy database
+
+_____________________________________________________________________________________________________________________________________________________________________________________
+
+Creating an Sample routes in FastAPI:
+-------------------------------------
+
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/get_method")
+async def get_method():
+    return {"method": "it is get method"}
+
+@app.post("/post_method")
+async def post_method():
+    return {"method": "it is post method"}
+
+@app.put("/put_method")
+async def put_method():
+    return {"method": "it is put method"}
+
+@app.delete("/delete_method")
+async def delete_method():
+    return {"method": "it is delete method"}
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Path Paramters:
+--------------
+concept:
+	what is Path params?
+	demostrating with single & multiple params
+	Adding the meta data and validation for the path params using "Path" class
+	
+definaton:
+	This params are passing the URL like in the below.
+	All path parameter are the required Params only 
+	
+		Example:http://127.0.0.1:8000/get_emp/1010
+		        hers get_emp is a URL_pattern for the route and 1010 is path params
+
+Single params Example:
+---------------------
+from fastapi import FastAPI
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+
+@app.get("/get_emp/{empid}") #gets an single record
+async def get_method(empid : int):
+    record=[record for record in employee_database if record["id"]==empid]
+    return {"Employee Details:":record}
+
+multiple param example:
+----------------------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+employee_dependent=[
+                    {"did":1,"empid":1010,"Name":"Willian","relation":"father"},
+                    {"did":2,"empid":1030,"Name":"Dasharath","relation":"father"},
+]
+
+@app.get("/employee/{empid}/dependent/{did}")
+async def get_employee(empid: int, did: int):
+    emp_record = [record for record in employee_database if record["id"] == empid]
+    depent_record=[record for record in employee_dependent if record["did"] == did]
+    return {"Employee":emp_record,"dependent":depent_record}
+
+Add the metadata for the path param and validation:
+--------------------------------------------------
+from fastapi import FastAPI, Path
+
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+@app.get("/employee/{empid}")
+async def get_employee(empid: int=Path(...,description="please enter the employee id to get details",ge=1000,le=2000)):
+    emp_record = [record for record in employee_database if record["id"] == empid]
+    return {"Employee":emp_record}
+
+Note Points:
+	three dots(...) are called as elipses. which make the query paramter is required params.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Query Params:
+============
+	so we cant make path params are optional params but sometime we need a optional params on that time we need to use,
+	Query Params.
+	usally Query params looks like
+		http://127.0.0.1:8000/employee?skip=0&limit=2
+			here skip and limit are the Query params.
+
+Example demostrating the pagination to get the details of the employees.
+------------------------------------------------------------------------
+from fastapi import FastAPI, Path
+
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+
+@app.get("/employee")
+async def get_employee(skip: int = 0, limit: int = 100):
+     return employee_database[skip:skip+limit]
+
+@app.get("/employee/{empid}")
+async def get_employee_by_id(empid: int,salary :Optional[int]=None):
+    record=[record for record in employee_database if record["id"]==empid or record["Salary"]==salary]
+    if record:
+        result={"employee details":record}
+    else:
+        result={"employee details":"Not found"}
+    return result
+
+Addding the metadata and validation to the query params using Query class
+-------------------------------------------------------------------------
+from typing import Optional
+
+from fastapi import FastAPI, Path, Query
+
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+employee_dependent=[
+                    {"did":1,"empid":1010,"Name":"Willian","relation":"father"},
+                    {"did":2,"empid":1030,"Name":"Dasharath","relation":"father"},
+]
+
+
+
+@app.get("/employee/{empid}")
+async def get_employee_by_id(empid: int,salary :int=Query(None,gt=0,lt=100000)):
+    record=[record for record in employee_database if record["id"]==empid or record["Salary"]==salary]
+    if record:
+        result={"employee details":record }
+    else:
+        result={"employee details":"Not found"}
+    return result
+
+Note:
+	Typically the way you decide this is If you want to search/find a specific resource, 
+	you should use Path parameter whereas if you want to sort or filter items, then you should use query parameter
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+CRUD Operation for static or dumpy database.
+-------------------------------------------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+employee_database=[{"id":1010,"Name":"John","Salary":50000,"designation":"SSE"},
+                   {"id":1020,"Name":"Ravi","Salary":60000,"designation":"SE"},
+                   {"id":1030,"Name":"Ram","Salary":90000,"designation":"Lead"},
+                   ]
+
+@app.get("/all_employees")
+async def all_employees():
+    return {"Employees":employee_database}
+
+@app.get("/get_emp/{empid}") #gets an single record
+async def get_method(empid : int):
+    record=[record for record in employee_database if record["id"]==empid]
+    return {"Employee Details:":record}
+
+@app.post("/create") #create an nre record and return the all records.
+async def post_method(id: int, name: str, salary: int, designation: str):
+    employee_database.append({"id": id, "Name": name, "Salary": salary, "designation": designation})
+    record = [record for record in employee_database if record["id"] == id]
+    return {"employee list :":record}
+
+@app.put("/put_method/{empid")
+async def put_method(empid: int,rename:str):
+    record = [record for record in employee_database if record["id"] == empid]
+    new_record=record[0]
+    new_record["Name"]=rename
+    return {"updated record": new_record,"old_record":record}
+
+@app.delete("/delete_record/{empid}")
+async def delete_method(empid:int):
+    record = [record for record in employee_database if record["id"] == 1020]
+    record_index=employee_database.index(record[0])
+    delete_record=employee_database.pop(record_index)
+    return {"delete record": delete_record}
+
+
+
+

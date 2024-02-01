@@ -1,0 +1,259 @@
+_________________________________________________________________________________________________________________________________________________________________________________________
+
+CONCEPT:
+	1.Dependencies - Intro
+	2.advantage of dependencies
+	3.Dependency in path function
+	4.Nested Dependecy function
+	5.Classes as Dependencies
+	6.Dependecy with Pagination
+	7.Sub-Dependencies
+	8.Dependencies in path operation decorators, 
+	9.global dependencies
+_________________________________________________________________________________________________________________________________________________________________________________________
+
+
+
+Dependencies - Intro:
+====================
+	FastAPI has a very powerful but intuitive Dependency Injection system.
+
+What is "Dependency Injection:
+	Dependency Injection" means, in programming, that there is a way for your code (in this case, your path operation functions) to declare things that it requires to work and use: "dependencies"
+
+
+advantage of dependencies:
+--------------------------
+	-> Have shared logic (the same code logic again and again).
+	-> Share database connections.
+	-> Enforce security, authentication, role requirements, etc.
+
+Example-1: without dependency which leads to code duplication or reduntant code.
+-------------------------------------------------------------------------------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/emps/")
+async def read_items(q: str | None = None, skip: int = 0, limit: int =100):
+    return {"q": q, "skip": skip, "limit":limit}
+
+@app.get("/users/")
+async def read_users(q: str | None = None, skip: int = 0, limit: int =100):
+    return {"q": q, "skip": skip, "limit":limit}
+
+
+
+
+Example-2: with dependency.
+-------------------------
+from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+async def common_parameter(q : str | None = None, skip : int=0, limit : int | None=None):
+    return {"q": q, "skip": skip, "limit":limit}
+
+@app.get("/emps/")
+async def read_items(common : dict=Depends(common_parameter)):
+    return common
+
+@app.get("/users/")
+async def read_users(common : list=Depends(common_parameter)):
+    return common
+
+
+Example - Nested Dependecy function:
+------------------------------------
+from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+async def hello_world():
+    return {"message": "Hello World"}
+
+async def common_parameters(q: str | None = None, skip: int = 0, limit: int =100,nested_depends: str=Depends(hello_world)):
+    return {"q": q, "skip": skip, "limit":limit,"hello":nested_depends}
+
+@app.get("/employee/")
+async def read_items(common: dict = Depends(common_parameters)):
+    return common
+
+@app.get("/users/")
+async def read_users(common: dict = Depends(common_parameters)):
+    return common
+
+Classes as Dependencies
+-----------------------
+	in python, clases are callable like function
+while create an instance of the class we can call like this,
+	instance_ob=class_name()
+
+Example:
+from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+
+class CommonQueryParams:
+    def __init__(self, q: str | None = None, skip: int = 0, limit: int = 100):
+        self.q = q
+        self.skip = skip
+        self.limit = limit
+
+
+@app.get("/employee/")
+async def read_items(common: dict = Depends(CommonQueryParams)):
+    return common
+
+@app.get("/users/")
+async def read_users(common: CommonQueryParams = Depends()):
+    return common
+
+
+Example of pagination:
+----------------------
+from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+employees_database=[{1010:{"name":"John","salary":50000,"address":'New York'}},
+                    {1020:{"name":"Ravi sharma","salary":60000,"address":'India'}},
+                    {1030:{"name":"Ram","salary":70000,"address":'India'}}
+                ]
+
+class CommonQueryParams:
+    def __init__(self, q: str | None = None, skip: int = 0, limit: int = 100):
+        self.q = q
+        self.skip = skip
+        self.limit = limit
+
+@app.get("/employee/")
+async def read_items(common: CommonQueryParams = Depends(CommonQueryParams)):
+    response={}
+    if common.q:
+        response.update({"q":common.q})
+    emp=employees_database[common.skip : common.skip + common.limit]
+    response.update({"employees":emp})
+    return response
+
+#or
+@app.get("/employee_1/")
+async def read_items(common: CommonQueryParams = Depends()):
+    response={}
+    if common.q:
+        response.update({"q":common.q})
+    emp=employees_database[common.skip : common.skip + common.limit]
+    response.update({"employees":emp})
+    return response
+
+#or
+@app.get("/employee_2/")
+async def read_items(common = Depends(CommonQueryParams)):
+    response={}
+    if common.q:
+        response.update({"q":common.q})
+    emp=employees_database[common.skip : common.skip + common.limit]
+    response.update({"employees":emp})
+    return response
+
+#or:
+@app.get("/employee_3/")
+async def read_items(common = Depends(CommonQueryParams)):
+    response={}
+    if common.q:
+        response.update({"q":common.q})
+    emp=employees_database[common.skip : common.skip + common.limit]
+    response.update({"employees":emp})
+    return response
+
+
+
+Sub-Dependencies
+----------------
+	we can create dependencies that have sub-dependencies
+
+Example:
+
+from fastapi import FastAPI, Body, Depends
+
+app = FastAPI()
+
+
+def query_extractor(q: str | None = None):
+    return q
+
+def query_or_body_extractor(q: str = Depends(query_extractor), last_query: str | None = Body(None)):
+    if not q:
+        return last_query
+    return q
+
+
+@app.post("/items")
+async def try_query(query_or_body: str = Depends(query_or_body_extractor)):
+    return {"q_or_body": query_or_body}
+
+
+Dependencies in path operation decorators, global dependencies
+--------------------------------------------------------------
+	In some cases you don't really need the return value of a dependency inside your path operation function.
+	Or the dependency doesn't return a value.
+
+	But you still need it to be executed/solved.
+	For those cases, instead of declaring a path operation function parameter with Depends, you can add a list of dependencies to the path operation decorato
+
+
+
+	Add dependencies to the path operation decorator
+	------------------------------------------------
+
+Example:
+from fastapi import FastAPI, Body, Depends, Header, HTTPException
+
+app = FastAPI()
+
+async def verify_token(x_token: str=Header(...)):
+    if x_token !="fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+
+async def verify_key(x_key :str = Header()):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+
+
+@app.get("/items/", dependencies=[Depends(verify_token), Depends(verify_key)])
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]
+
+
+
+Global Dependencies:
+===================
+		For some types of applications you might want to add dependencies to the whole application.
+		Similar to the way you can add dependencies to the path operation decorators, you can add them to the FastAPI application.
+
+Example-1:
+from fastapi import FastAPI, File, UploadFile, Form, Body, HTTPException, Depends, Header
+
+async def verify_token(x_token: str=Header(...)):
+    if x_token !="fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+async def verify_key(x_key :str = Header()):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+
+#Global Dependency
+app=FastAPI(dependencies=[Depends(verify_token), Depends(verify_key)])
+
+
+@app.get("/items/", )
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]
+
+
+
+
